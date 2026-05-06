@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — Textora</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0D0D0F;--brand:#FF5C3A;--text:#F2F2F4;--muted:#A0A0B0;--border:#2E2E3A;--panel1:#141418;--panel2:#1C1C22;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+a{color:inherit;text-decoration:none}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none;transition:all .2s}
+input{font-family:'DM Sans',sans-serif;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--brand)}
+
+/* SIDEBAR */
+#sidebar{width:220px;background:var(--panel1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;padding:20px 0}
+.sb-logo{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;display:flex;align-items:center;gap:6px;padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.logo-dot{width:8px;height:8px;background:var(--brand);border-radius:50%}
+.user-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#ff9a3a);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;margin:0 auto 8px}
+.user-name{font-size:14px;font-weight:600;text-align:center;padding:0 20px}
+.user-plan{text-align:center;margin-bottom:20px}
+.plan-badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;background:rgba(255,92,58,.15);color:var(--brand);border:1px solid rgba(255,92,58,.3)}
+.sb-nav{flex:1;padding:0 10px}
+.sb-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);transition:all .2s;margin-bottom:2px}
+.sb-link:hover{background:var(--panel2);color:var(--text)}
+.sb-link.active{background:rgba(255,92,58,.1);color:var(--brand)}
+.sb-icon{font-size:16px;width:20px;text-align:center}
+.sb-bottom{padding:10px 10px 0;border-top:1px solid var(--border);margin-top:12px}
+.logout-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);width:100%;background:none;transition:all .2s}
+.logout-btn:hover{background:rgba(255,68,68,.1);color:#FF4444}
+
+/* MAIN */
+#content{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+#topbar{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-shrink:0;background:var(--panel1)}
+.greeting{font-family:'Syne',sans-serif;font-size:22px;font-weight:700}
+.topbar-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.btn-brand{background:var(--brand);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700}
+.btn-brand:hover{background:#ff7b60}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);padding:9px 18px;border-radius:10px;font-size:13px;font-weight:500}
+.btn-outline:hover{border-color:var(--brand);color:var(--brand)}
+
+#main-area{flex:1;padding:24px 28px}
+
+/* USAGE BAR */
+.usage-bar{background:var(--panel1);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.usage-label{font-size:13px;color:var(--muted);white-space:nowrap}
+.usage-progress{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.usage-fill{height:100%;background:var(--brand);border-radius:3px;transition:width .5s}
+.usage-count{font-size:13px;font-weight:600;white-space:nowrap}
+.upgrade-link{font-size:12px;color:var(--brand);font-weight:600;white-space:nowrap}
+
+/* SEARCH + FILTER */
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.search-input{width:100%;padding:9px 12px 9px 36px;border-radius:10px;font-size:13px;background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+.search-input:focus{border-color:var(--brand)}
+.filter-tabs{display:flex;gap:4px}
+.filter-tab{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;background:transparent;color:var(--muted);border:1px solid transparent;transition:all .2s}
+.filter-tab.active{background:rgba(255,92,58,.12);color:var(--brand);border-color:rgba(255,92,58,.3)}
+.filter-tab:hover:not(.active){background:var(--panel2);color:var(--text)}
+
+/* PROJECTS GRID */
+.projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.proj-card{background:var(--panel1);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .3s;cursor:pointer;position:relative}
+.proj-card:hover{border-color:rgba(255,92,58,.4);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.proj-thumb{width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,var(--panel2),#1a1a24);display:flex;align-items:center;justify-content:center;font-size:32px;position:relative;overflow:hidden}
+.proj-thumb img{width:100%;height:100%;object-fit:cover}
+.proj-type-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:var(--text);padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700}
+.proj-menu-btn{position:absolute;top:8px;right:8px;width:28px;height:28px;background:rgba(0,0,0,.6);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text);opacity:0;transition:opacity .2s}
+.proj-card:hover .proj-menu-btn{opacity:1}
+.proj-body{padding:12px}
+.proj-name{font-size:14px;font-weight:600;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proj-date{font-size:12px;color:var(--muted)}
+.proj-dropdown{position:absolute;top:40px;right:8px;background:var(--panel1);border:1px solid var(--border);border-radius:10px;min-width:140px;z-index:10;padding:6px 0;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none}
+.proj-dropdown.open{display:block}
+.proj-dd-item{padding:8px 16px;font-size:13px;color:var(--text);cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:8px}
+.proj-dd-item:hover{background:var(--panel2)}
+.proj-dd-item.danger{color:#FF4444}
+.proj-dd-item.danger:hover{background:rgba(255,68,68,.1)}
+
+/* EMPTY STATE */
+.empty-state{grid-column:1/-1;text-align:center;padding:80px 20px}
+.empty-icon{font-size:64px;margin-bottom:16px;opacity:.4;display:block}
+.empty-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;margin-bottom:8px}
+.empty-sub{font-size:14px;color:var(--muted);margin-bottom:24px;max-width:320px;margin-left:auto;margin-right:auto;line-height:1.6}
+
+@media(max-width:900px){.projects-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){
+  #sidebar{display:none}
+  .projects-grid{grid-template-columns:1fr}
+  #main-area{padding:16px}
+  .greeting{font-size:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-logo"><div class="logo-dot"></div>Textora</div>
+  {% set initials = user.full_name.split()[0][0]|upper if user.full_name else 'U' %}
+  <div class="user-avatar">{{ initials }}</div>
+  <div class="user-name">{{ user.full_name }}</div>
+  <div class="user-plan"><span class="plan-badge">{{ (user.plan_type or 'free').upper() }}</span></div>
+  <div class="sb-nav">
+    <a href="/dashboard" class="sb-link active"><span class="sb-icon">📁</span>My Projects</a>
+    <a href="/editor" class="sb-link"><span class="sb-icon">➕</span>New Project</a>
+    <a href="/settings" class="sb-link"><span class="sb-icon">⚙️</span>Settings</a>
+    <a href="#" class="sb-link"><span class="sb-icon">❓</span>Help</a>
+  </div>
+  <div class="sb-bottom">
+    <a href="/logout"><button class="logout-btn"><span class="sb-icon">🚪</span>Logout</button></a>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+  <div id="topbar">
+    <div class="greeting">{{ greeting }}, {{ user.full_name.split()[0] if user.full_name else 'there' }} 👋</div>
+    <div class="topbar-right">
+      <a href="/editor"><button class="btn-brand">+ New Project</button></a>
+    </div>
+  </div>
+  <div id="main-area">
+
+    {% if user.plan_type == 'free' %}
+    <div class="usage-bar">
+      <span class="usage-label">Exports this month:</span>
+      <div class="usage-progress"><div class="usage-fill" style="width:{{ [projects|length * 20, 100]|min }}%"></div></div>
+      <span class="usage-count">{{ projects|length }} of 5</span>
+      <a href="/settings?tab=billing" class="upgrade-link">Upgrade ↗</a>
+    </div>
+    {% endif %}
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search your projects…" oninput="filterProjects(this.value)"/>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterTab('all',this)">All</button>
+        <button class="filter-tab" onclick="filterTab('image',this)">Images</button>
+        <button class="filter-tab" onclick="filterTab('recent',this)">Recent</button>
+      </div>
+    </div>
+
+    <div class="projects-grid" id="projectsGrid">
+      {% if not projects %}
+      <div class="empty-state">
+        <span class="empty-icon">📂</span>
+        <div class="empty-title">No projects yet</div>
+        <div class="empty-sub">Upload your first image to start editing text with AI.</div>
+        <a href="/editor"><button class="btn-brand" style="padding:12px 28px;border-radius:12px;font-size:14px">Upload Image</button></a>
+      </div>
+      {% else %}
+      {% for p in projects %}
+      <div class="proj-card" data-name="{{ p.project_name }}" data-id="{{ p.id }}">
+        <div class="proj-thumb" onclick="openProject({{ p.id }})">
+          {% if p.edited_image_url %}
+          <img src="{{ p.edited_image_url }}" alt="{{ p.project_name }}" onerror="this.style.display='none'"/>
+          {% else %}
+          🖼️
+          {% endif %}
+          <span class="proj-type-badge">IMAGE</span>
+        </div>
+        <div class="proj-menu-btn" onclick="toggleMenu({{ p.id }},event)">⋯</div>
+        <div class="proj-dropdown" id="menu-{{ p.id }}">
+          <div class="proj-dd-item" onclick="openProject({{ p.id }})">✏️ Open Editor</div>
+          <div class="proj-dd-item" onclick="renameProject({{ p.id }}, '{{ p.project_name }}')">✍️ Rename</div>
+          <div class="proj-dd-item" onclick="downloadProject('{{ p.edited_image_url or p.original_image_url }}')">⬇️ Download</div>
+          <div class="proj-dd-item danger" onclick="deleteProject({{ p.id }})">🗑 Delete</div>
+        </div>
+        <div class="proj-body" onclick="openProject({{ p.id }})">
+          <div class="proj-name">{{ p.project_name }}</div>
+          <div class="proj-date">Edited {{ p.last_edited_at[:10] if p.last_edited_at else 'Unknown' }}</div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function openProject(id) {
+  window.location.href = '/editor?project_id=' + id;
+}
+
+function toggleMenu(id, e) {
+  e.stopPropagation();
+  document.querySelectorAll('.proj-dropdown').forEach(d => d.classList.remove('open'));
+  document.getElementById('menu-' + id).classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.proj-dropdown').forEach(d => d.classList.remove('open'));
+});
+
+function renameProject(id, current) {
+  const name = prompt('New project name:', current);
+  if (!name || !name.trim()) return;
+  fetch('/api/projects/' + id, {
+    method: 'PATCH',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({project_name: name.trim()})
+  }).then(r => r.json()).then(d => { if (d.ok) location.reload(); });
+}
+
+function downloadProject(url) {
+  if (!url) { alert('No image available.'); return; }
+  const a = document.createElement('a');
+  a.href = url; a.download = 'textora-export.png'; a.target = '_blank'; a.click();
+}
+
+function deleteProject(id) {
+  if (!confirm('Delete this project? This cannot be undone.')) return;
+  fetch('/api/projects/' + id, {method:'DELETE'})
+    .then(r => r.json())
+    .then(d => { if (d.ok) location.reload(); });
+}
+
+function filterProjects(q) {
+  const cards = document.querySelectorAll('.proj-card');
+  q = q.toLowerCase();
+  cards.forEach(c => {
+    c.style.display = c.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function filterTab(type, btn) {
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterProjects(document.getElementById('searchInput').value);
+}
+</script>
+</body>
+</html>

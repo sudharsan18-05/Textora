@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Textora Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0D0D0F;--brand:#FF5C3A;--accent:#3EFFA8;--text:#F2F2F4;--muted:#A0A0B0;--border:#2E2E3A;--panel1:#141418;--panel2:#1C1C22;--danger:#FF4444;--warn:#F59E0B;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;user-select:none}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none;transition:all .2s}
+input,select,textarea{font-family:'DM Sans',sans-serif;background:var(--panel2);color:var(--text);border:1px solid var(--border);outline:none;transition:border-color .2s;border-radius:8px}
+input:focus,select:focus,textarea:focus{border-color:var(--brand)}
+input[type=range]{background:none;border:none;padding:0;cursor:pointer}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* ── GUEST BANNER ── */
+#guest-banner{background:rgba(245,158,11,.15);border-bottom:1px solid rgba(245,158,11,.3);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;font-size:13px;flex-shrink:0}
+#guest-banner b{color:var(--warn)}
+
+/* ── TOPNAV ── */
+#topnav{height:52px;background:var(--panel1);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;display:flex;align-items:center;gap:5px;white-space:nowrap;text-decoration:none;color:var(--text)}
+.logo-dot{width:7px;height:7px;background:var(--brand);border-radius:50%}
+.nav-sep{width:1px;height:28px;background:var(--border);margin:0 4px;flex-shrink:0}
+.project-name{background:none;border:1px solid transparent;color:var(--text);font-size:14px;font-weight:500;padding:5px 8px;border-radius:8px;min-width:120px;max-width:200px}
+.project-name:hover{border-color:var(--border)}
+.project-name:focus{border-color:var(--brand)}
+.nav-spacer{flex:1}
+.status-bar-indicator{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nav-right{display:flex;align-items:center;gap:8px}
+.btn-sm{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600}
+.btn-brand{background:var(--brand);color:#fff}
+.btn-brand:hover{background:#ff7b60}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--brand);color:var(--brand)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#ff9a3a);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;position:relative;flex-shrink:0}
+.guest-badge{background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.4);color:var(--warn);padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer}
+.user-menu{position:absolute;top:40px;right:0;background:var(--panel1);border:1px solid var(--border);border-radius:12px;min-width:180px;z-index:999;padding:8px 0;box-shadow:0 8px 32px rgba(0,0,0,.5);display:none}
+.user-menu.open{display:block}
+.user-menu-name{padding:8px 16px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);margin-bottom:4px}
+.user-menu a,.user-menu button{display:block;width:100%;text-align:left;padding:8px 16px;font-size:13px;color:var(--text);background:none;border:none;text-decoration:none;transition:background .2s}
+.user-menu a:hover,.user-menu button:hover{background:var(--panel2)}
+.user-menu-sep{height:1px;background:var(--border);margin:4px 0}
+
+/* ── MAIN LAYOUT ── */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* ── ICON SIDEBAR ── */
+#icon-sidebar{width:52px;background:var(--panel1);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:6px 0;gap:2px;flex-shrink:0}
+.tool-btn{width:36px;height:36px;border-radius:8px;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:18px;position:relative;transition:all .2s}
+.tool-btn:hover{background:var(--panel2);color:var(--text)}
+.tool-btn.active{background:var(--brand);color:#fff}
+.tool-btn.toggled{background:rgba(255,92,58,.15);color:var(--brand)}
+.sidebar-divider{width:28px;height:1px;background:var(--border);margin:3px 0;flex-shrink:0}
+.sidebar-spacer{flex:1}
+
+/* ── TOOLTIP SYSTEM ── */
+.tt{position:fixed;background:#1C1C22;border:1px solid #2E2E3A;border-radius:8px;padding:6px 10px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;min-width:120px}
+.tt-name{font-size:12px;font-weight:600;color:#F2F2F4;white-space:nowrap}
+.tt-key{display:inline-block;background:#2E2E3A;color:#A0A0B0;font-size:10px;border-radius:4px;padding:1px 5px;margin-top:3px;white-space:nowrap}
+
+/* ── LEFT PANEL ── */
+#left-panel{width:220px;background:var(--panel1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-tab{flex:1;padding:10px;font-size:11px;font-weight:600;text-align:center;background:transparent;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s}
+.panel-tab.active{color:var(--text);border-bottom-color:var(--brand)}
+.panel-body{flex:1;overflow-y:auto;padding:8px}
+.scan-btn{width:100%;padding:11px;border-radius:12px;background:linear-gradient(135deg,var(--brand),#ff9a3a);color:#fff;font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.scan-btn:hover{opacity:.9}
+.scan-btn:disabled{opacity:.6;cursor:not-allowed}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:20px 12px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.upload-zone:hover{border-color:var(--brand);background:rgba(255,92,58,.04)}
+.upload-zone-icon{font-size:28px;margin-bottom:6px}
+.upload-zone-text{font-size:12px;color:var(--muted)}
+.chip{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:8px;margin-bottom:6px;cursor:pointer;transition:all .2s}
+.chip:hover{border-color:rgba(255,92,58,.5)}
+.chip.selected{border-color:var(--brand);background:rgba(255,92,58,.08)}
+.chip-top{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.chip-badge{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
+.chip-straight{background:rgba(255,92,58,.2);color:var(--brand)}
+.chip-rotated{background:rgba(245,158,11,.2);color:var(--warn)}
+.chip-text{font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.chip-meta{font-size:11px;color:var(--muted)}
+.empty-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted);text-align:center;padding:20px;font-size:13px}
+.empty-icon{font-size:40px;opacity:.4;display:block;margin-bottom:4px}
+.panel-bottom{padding:8px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:6px}
+.btn-panel{flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:600;background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+.btn-panel:hover{border-color:var(--brand);color:var(--brand)}
+.btn-panel.danger:hover{border-color:var(--danger);color:var(--danger)}
+
+/* ── CANVAS AREA ── */
+#canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#111115}
+#canvas-toolbar{height:40px;background:var(--panel1);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:4px;flex-shrink:0}
+.ctool{padding:5px 8px;border-radius:6px;background:transparent;color:var(--muted);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;position:relative}
+.ctool:hover{background:var(--panel2);color:var(--text)}
+.ctool.active{background:rgba(255,92,58,.15);color:var(--brand)}
+#zoom-display{font-size:12px;color:var(--muted);padding:0 8px}
+.canvas-sep{width:1px;height:20px;background:var(--border);margin:0 4px}
+#canvas-wrap{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;position:relative;cursor:default}
+#canvas-wrap.pan-mode{cursor:grab}
+#canvas-wrap.pan-mode:active{cursor:grabbing}
+#img-container{position:relative;display:inline-block;line-height:0}
+#main-img{display:block;max-width:none}
+#grid-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;opacity:.35;display:none}
+#guide-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;display:none}
+#bbox-svg{position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible}
+.bbox-rect{cursor:pointer;fill:rgba(255,92,58,.08);stroke-width:2;transition:all .2s;rx:3;ry:3}
+.bbox-rect:hover{fill:rgba(255,92,58,.18)}
+.bbox-rect.selected{fill:rgba(255,92,58,.15);stroke-width:2.5}
+#upload-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;height:100%;color:var(--muted);text-align:center;padding:40px}
+#upload-placeholder .big-icon{font-size:64px;opacity:.3}
+#upload-placeholder h3{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text);opacity:.7}
+
+/* ── RIGHT PANEL ── */
+#right-panel{width:280px;background:var(--panel1);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.rpanel-header{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.rpanel-title{font-size:13px;font-weight:700;color:var(--text)}
+.rpanel-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.rpanel-body{flex:1;overflow-y:auto;padding:12px}
+.rp-section{margin-bottom:16px}
+.rp-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.rp-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.rp-input{padding:8px 10px;border-radius:8px;font-size:13px;width:100%;color:var(--text);background:var(--panel2);border:1px solid var(--border)}
+.rp-input:focus{border-color:var(--brand)}
+.rp-textarea{padding:8px 10px;border-radius:8px;font-size:13px;width:100%;resize:none;min-height:70px;color:var(--text);background:var(--panel2);border:1px solid var(--border);line-height:1.5}
+.rp-textarea:focus{border-color:var(--brand)}
+.rp-btn-row{display:flex;gap:6px}
+.rp-icon-btn{width:30px;height:30px;border-radius:6px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:14px;position:relative}
+.rp-icon-btn:hover{border-color:var(--brand);color:var(--brand)}
+.rp-icon-btn.active{background:rgba(255,92,58,.15);border-color:var(--brand);color:var(--brand)}
+.rp-seg{display:flex;background:var(--panel2);border-radius:8px;padding:2px;gap:2px;border:1px solid var(--border)}
+.rp-seg-btn{flex:1;padding:5px;border-radius:6px;background:transparent;color:var(--muted);font-size:11px;font-weight:600;transition:all .2s}
+.rp-seg-btn.active{background:var(--brand);color:#fff}
+.slider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.slider-label{font-size:12px;color:var(--muted);width:80px;flex-shrink:0}
+.rp-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border);cursor:pointer}
+.rp-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--brand);cursor:pointer}
+.slider-val{font-size:12px;color:var(--text);width:36px;text-align:right;flex-shrink:0}
+.color-row{display:flex;align-items:center;gap:8px}
+.color-swatch{width:32px;height:32px;border-radius:8px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;position:relative;overflow:hidden}
+.color-swatch input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.color-hex{flex:1;padding:7px 10px;border-radius:8px;font-size:12px;font-family:monospace;background:var(--panel2);border:1px solid var(--border);color:var(--text)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.toggle-label{font-size:12px;color:var(--muted)}
+.toggle{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:100px;transition:.3s}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked~.toggle-track{background:var(--brand)}
+.toggle input:checked~.toggle-thumb{left:19px}
+.rpanel-actions{padding:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.btn-apply{width:100%;padding:12px;border-radius:10px;background:var(--brand);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-apply:hover:not(:disabled){background:#ff7b60}
+.btn-apply:disabled{opacity:.6;cursor:not-allowed}
+.btn-remove{width:100%;padding:9px;border-radius:10px;background:transparent;color:var(--danger);border:1px solid rgba(255,68,68,.3);font-size:13px;font-weight:600}
+.btn-remove:hover{background:rgba(255,68,68,.1)}
+.empty-rpanel{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--muted);text-align:center;padding:20px;font-size:13px}
+
+/* ── PROCESSING OVERLAY ── */
+#proc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000;display:none;backdrop-filter:blur(4px)}
+.proc-card{background:var(--panel1);border:1px solid var(--border);border-radius:20px;padding:32px 40px;text-align:center;min-width:300px}
+.proc-spinner{width:48px;height:48px;border:3px solid rgba(255,92,58,.2);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proc-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px}
+.proc-step{font-size:13px;color:var(--muted)}
+
+/* ── EXPORT MODAL ── */
+#export-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1001;backdrop-filter:blur(4px)}
+.modal-card{background:var(--panel1);border:1px solid var(--border);border-radius:20px;padding:32px;min-width:360px;max-width:90vw}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:20px}
+.modal-field{margin-bottom:14px}
+.modal-field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.modal-field select{width:100%;padding:9px 12px;border-radius:8px;font-size:13px}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.modal-btns button{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600}
+
+/* ── GUEST LIMIT MODAL ── */
+#guest-limit-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1002}
+.glm-card{background:var(--panel1);border:1px solid var(--border);border-radius:20px;padding:36px;text-align:center;max-width:360px}
+.glm-icon{font-size:48px;margin-bottom:16px}
+.glm-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px}
+.glm-sub{font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.glm-btns{display:flex;gap:10px}
+.glm-btns a{flex:1}
+.glm-btns button{width:100%;padding:12px;border-radius:10px;font-size:14px;font-weight:600}
+
+/* ── HELP MODAL ── */
+#help-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1003;backdrop-filter:blur(4px)}
+.help-card{background:var(--panel1);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:680px;width:90vw;max-height:80vh;overflow-y:auto}
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;margin-top:16px}
+.help-group-title{font-size:11px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;grid-column:1/-1}
+.shortcut-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(46,46,58,.5)}
+.shortcut-key{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;font-family:monospace;color:var(--text);white-space:nowrap;flex-shrink:0}
+.shortcut-desc{font-size:13px;color:var(--muted)}
+
+/* ── STATUS BAR ── */
+#status-bar{height:28px;background:var(--panel1);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:16px;flex-shrink:0}
+.status-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+
+/* ── SUCCESS TOAST ── */
+#success-toast{position:fixed;bottom:24px;right:24px;background:#141418;border:1px solid rgba(62,255,168,.4);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;color:#3EFFA8;display:flex;align-items:center;gap:8px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
+#success-toast.visible{transform:translateY(0);opacity:1}
+
+/* ── 5-STEP PROC PANEL ── */
+#proc-steps{display:none;flex-direction:column;gap:6px;padding:12px;border-top:1px solid var(--border)}
+.proc-step-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);padding:4px 0}
+.proc-step-row.active{color:var(--text)}
+.proc-step-row.done{color:#3EFFA8}
+.proc-step-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .3s}
+.proc-step-row.active .proc-step-dot{border-color:var(--brand);background:rgba(255,92,58,.15);animation:pulseDot .8s ease infinite}
+.proc-step-row.done .proc-step-dot{border-color:#3EFFA8;background:rgba(62,255,168,.15);color:#3EFFA8}
+@keyframes pulseDot{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+
+/* ── EDIT COUNTER ── */
+.edit-counter{font-size:11px;color:var(--muted);padding:3px 8px;background:var(--panel2);border-radius:6px;display:flex;align-items:center;gap:5px;margin-bottom:8px}
+.edit-counter-num{color:var(--accent);font-weight:700;font-size:13px}
+
+/* ── ADD TEXT / RESCAN BUTTONS ── */
+.btn-add-text{width:100%;padding:9px;border-radius:10px;background:rgba(62,255,168,.12);border:1px solid rgba(62,255,168,.3);color:#3EFFA8;font-size:12px;font-weight:700;margin-bottom:6px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-add-text:hover{background:rgba(62,255,168,.22)}
+.btn-add-text.active{background:#3EFFA8;color:#0D0D0F;border-color:#3EFFA8}
+.btn-rescan{width:100%;padding:9px;border-radius:10px;background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.25);color:#60A5FA;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-rescan:hover{background:rgba(96,165,250,.2)}
+
+/* ── POSITION CONTROLS ── */
+.pos-row{display:flex;gap:8px;margin-bottom:8px}
+.pos-field{flex:1;display:flex;flex-direction:column;gap:3px}
+.pos-lbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.pos-inp{width:100%;padding:5px 8px;border-radius:6px;font-size:12px;font-weight:600;text-align:center}
+.nudge-row{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:3px;width:80px;margin:4px auto}
+.nudge-btn{width:24px;height:24px;border-radius:5px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;padding:0}
+.nudge-btn:hover{border-color:var(--brand);color:var(--brand)}
+.reset-pos-btn{width:100%;padding:6px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;cursor:pointer;margin-top:6px;transition:all .2s}
+.reset-pos-btn:hover{border-color:var(--warn);color:var(--warn)}
+
+/* ── DRAG TOOLTIP ── */
+#drag-tooltip{position:fixed;background:#141418;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--text);pointer-events:none;z-index:9999;display:none;transform:translate(14px,-20px);white-space:nowrap}
+
+/* ── ADD TEXT CROSSHAIR CURSOR ── */
+#bbox-svg.add-text-mode{cursor:crosshair}
+
+/* ── NEW EXPORT MODAL ── */
+.exp-modal-card{background:var(--panel1);border:1px solid var(--border);border-radius:16px;padding:24px;width:420px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative}
+.exp-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
+.exp-close:hover{color:var(--text)}
+.exp-preview{width:100%;height:110px;object-fit:contain;border-radius:8px;background:var(--panel2);border:1px solid var(--border);margin-bottom:14px}
+.exp-section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.exp-fmt-row{display:flex;gap:6px;margin-bottom:14px}
+.exp-fmt-btn{flex:1;padding:8px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.exp-fmt-btn.active{background:rgba(255,92,58,.15);border-color:var(--brand);color:var(--brand)}
+.exp-quality-wrap{margin-bottom:14px}
+.exp-quality-row{display:flex;align-items:center;gap:10px}
+.exp-quality-row input[type=range]{flex:1}
+.exp-quality-val{font-size:12px;font-weight:700;color:var(--brand);min-width:36px;text-align:right}
+.exp-res-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.exp-res-btn{padding:6px 12px;border-radius:7px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s}
+.exp-res-btn.active{background:rgba(255,92,58,.12);border-color:var(--brand);color:var(--brand)}
+.exp-custom-wh{display:none;gap:8px;margin-bottom:12px}
+.exp-custom-wh input{flex:1;padding:6px 8px;border-radius:6px;font-size:12px}
+.exp-filename-wrap{margin-bottom:16px}
+.exp-filename-wrap input{width:100%;padding:8px;border-radius:8px;font-size:13px}
+.exp-action-row{display:flex;gap:8px}
+.exp-dl-btn{flex:2;padding:12px;border-radius:10px;background:var(--brand);color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.exp-dl-btn:hover{background:#ff7b60}
+.exp-share-btn{flex:1;padding:12px;border-radius:10px;background:var(--panel2);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.exp-share-btn:hover{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- GUEST BANNER -->
+{% if is_guest %}
+<div id="guest-banner">
+  <span>👤 You are editing as a <b>guest</b>. Your work will not be saved. <span id="guest-exports-left"></span></span>
+  <a href="/signup"><button class="btn-sm btn-brand" style="font-size:12px">Sign Up Free</button></a>
+</div>
+{% endif %}
+
+<!-- TOP NAV -->
+<div id="topnav">
+  <a href="/" class="logo"><div class="logo-dot"></div>Textora</a>
+  <div class="nav-sep"></div>
+  <input type="text" class="project-name" id="projectName" value="Untitled Project" spellcheck="false"/>
+  <div class="nav-spacer"></div>
+  <div class="status-bar-indicator" id="saveIndicator" style="display:none">
+    <div class="status-dot" id="saveDot" style="background:var(--muted)"></div>
+    <span id="saveText">Not saved</span>
+  </div>
+  <div class="nav-right">
+    <button class="btn-sm btn-outline" onclick="undoHistory()" id="undoBtn" title="">⟵ Undo</button>
+    <button class="btn-sm btn-outline" onclick="redoHistory()" id="redoBtn" title="">Redo ⟶</button>
+    <button class="btn-sm btn-brand" onclick="openExport()" id="exportBtn">⬇ Export</button>
+    {% if is_logged %}
+    <div style="position:relative">
+      <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()">
+        {{ user_name[0].upper() if user_name else 'U' }}
+      </div>
+      <div class="user-menu" id="userMenu">
+        <div class="user-menu-name">{{ user_name }}</div>
+        <a href="/dashboard">📁 Dashboard</a>
+        <a href="/settings">⚙️ Settings</a>
+        <div class="user-menu-sep"></div>
+        <a href="/logout">🚪 Logout</a>
+      </div>
+    </div>
+    {% elif is_guest %}
+    <div style="position:relative">
+      <div class="guest-badge" id="guestBadge" onclick="toggleGuestMenu()">GUEST</div>
+      <div class="user-menu" id="guestMenu">
+        <div class="user-menu-name">Browsing as guest</div>
+        <a href="/signup">✨ Create Account</a>
+        <a href="/login">🔑 Log In</a>
+      </div>
+    </div>
+    {% else %}
+    <a href="/login"><button class="btn-sm btn-outline">Log In</button></a>
+    <a href="/signup"><button class="btn-sm btn-brand">Sign Up</button></a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- ICON SIDEBAR -->
+  <div id="icon-sidebar">
+    <div class="tool-btn active" id="tb-select" onclick="setTool('select')" data-tip="Select Tool" data-key="V">⬡</div>
+    <div class="tool-btn" id="tb-lasso" onclick="setTool('lasso')" data-tip="Lasso Select" data-key="L">◎</div>
+    <div class="sidebar-divider"></div>
+    <div class="tool-btn" id="tb-scan" onclick="triggerScan()" data-tip="Scan for Text" data-key="S">◉</div>
+    <div class="tool-btn" id="tb-eyedrop" onclick="setTool('eyedrop')" data-tip="Color Picker" data-key="E">💧</div>
+    <div class="tool-btn" id="tb-eraser" onclick="setTool('eraser')" data-tip="Inpaint Eraser" data-key="I">⌫</div>
+    <div class="sidebar-divider"></div>
+    <div class="tool-btn" id="tb-pan" onclick="setTool('pan')" data-tip="Pan Tool" data-key="H">✋</div>
+    <div class="tool-btn" id="tb-zoomin" onclick="zoomBy(0.2)" data-tip="Zoom In" data-key="Ctrl +">🔍</div>
+    <div class="tool-btn" id="tb-zoomout" onclick="zoomBy(-0.2)" data-tip="Zoom Out" data-key="Ctrl -">🔎</div>
+    <div class="tool-btn" id="tb-fit" onclick="fitToScreen()" data-tip="Fit to Screen" data-key="Ctrl 0">⛶</div>
+    <div class="sidebar-divider"></div>
+    <div class="tool-btn" id="tb-grid" onclick="toggleGrid()" data-tip="Toggle Grid" data-key="Ctrl G">⊞</div>
+    <div class="tool-btn" id="tb-ruler" onclick="toggleRuler()" data-tip="Toggle Ruler" data-key="Ctrl R">📏</div>
+    <div class="tool-btn" id="tb-guides" onclick="toggleGuides()" data-tip="Toggle Guides" data-key="Ctrl ;">╋</div>
+    <div class="tool-btn" id="tb-snap" onclick="toggleSnap()" data-tip="Snap to Grid" data-key="Ctrl⇧S">🧲</div>
+    <div class="sidebar-divider"></div>
+    <div class="tool-btn" id="tb-undo" onclick="undoHistory()" data-tip="Undo" data-key="Ctrl Z">↩</div>
+    <div class="tool-btn" id="tb-redo" onclick="redoHistory()" data-tip="Redo" data-key="Ctrl⇧Z">↪</div>
+    <div class="tool-btn" id="tb-history" onclick="alert('History panel coming soon')" data-tip="History" data-key="Ctrl H">⏱</div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+    <div class="tool-btn" id="tb-settings" onclick="window.location='/settings'" data-tip="Settings">⚙</div>
+    <div class="tool-btn" id="tb-help" onclick="openHelp()" data-tip="Help">?</div>
+  </div>
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel">
+    <div class="panel-tabs">
+      <button class="panel-tab active" onclick="showTab('layers')">Layers</button>
+      <button class="panel-tab" onclick="showTab('history')">History</button>
+    </div>
+    <div class="panel-body" id="tab-layers">
+      <div id="upload-area">
+        <input type="file" id="fileInput" accept="image/*" style="display:none"/>
+        <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+          <div class="upload-zone-icon">🖼️</div>
+          <div class="upload-zone-text">Click or drag image here<br/><small>JPG, PNG, WEBP up to 20MB</small></div>
+        </div>
+        <button class="scan-btn" id="scanBtn" onclick="triggerScan()" disabled>◉ Scan for Text</button>
+      </div>
+      <div id="edit-counter" class="edit-counter" style="display:none">
+        Edits: <span class="edit-counter-num" id="edit-count-num">0</span>
+      </div>
+      <button class="btn-add-text" id="addTextBtn" onclick="toggleAddTextMode()" style="display:none">＋ Add New Text</button>
+      <div id="layers-list"></div>
+      <button class="btn-rescan" id="rescanBtn" onclick="rescanCurrentImage()" style="display:none">↺ Re-scan Current Image</button>
+    </div>
+    <div class="panel-body" id="tab-history" style="display:none">
+      <div id="history-list"></div>
+    </div>
+    <div class="panel-bottom">
+      <button class="btn-panel" onclick="resetToOriginal()">↺ Reset</button>
+      <button class="btn-panel danger" onclick="clearCanvas()">✕ Clear</button>
+    </div>
+  </div>
+
+  <!-- CANVAS AREA -->
+  <div id="canvas-area">
+    <div id="canvas-toolbar">
+      <button class="ctool" onclick="zoomBy(-0.2)" data-tip="Zoom Out" data-key="Ctrl -">−</button>
+      <span id="zoom-display">100%</span>
+      <button class="ctool" onclick="zoomBy(0.2)" data-tip="Zoom In" data-key="Ctrl +">+</button>
+      <button class="ctool" onclick="fitToScreen()" data-tip="Fit to Screen" data-key="Ctrl 0">Fit</button>
+      <div class="canvas-sep"></div>
+      <button class="ctool" id="ct-grid" onclick="toggleGrid()" data-tip="Toggle Grid" data-key="Ctrl G">⊞ Grid</button>
+      <button class="ctool" id="ct-guides" onclick="toggleGuides()" data-tip="Toggle Guides" data-key="Ctrl ;">╋ Guides</button>
+      <button class="ctool" id="ct-ruler" onclick="toggleRuler()" data-tip="Toggle Ruler" data-key="Ctrl R">📏 Ruler</button>
+      <div class="canvas-sep"></div>
+      <span style="font-size:12px;color:var(--muted)" id="img-size-display"></span>
+    </div>
+    <div id="canvas-wrap">
+      <div id="upload-placeholder">
+        <div class="big-icon">🖼️</div>
+        <h3>Upload an Image to Start</h3>
+        <p style="font-size:14px;max-width:280px;line-height:1.6">Click the upload zone in the left panel or drag &amp; drop an image here to begin editing</p>
+        <button class="btn-sm btn-brand" onclick="document.getElementById('fileInput').click()" style="padding:10px 24px;border-radius:10px;font-size:14px">Upload Image</button>
+      </div>
+      <div id="img-container" style="display:none">
+        <img id="main-img" src="" alt=""/>
+        <canvas id="grid-overlay"></canvas>
+        <svg id="bbox-svg"></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="right-panel">
+    <div id="rp-empty" class="rpanel-body" style="display:flex">
+      <div class="empty-rpanel">
+        <span class="empty-icon">🎯</span>
+        <p style="font-weight:600;color:var(--text)">No Region Selected</p>
+        <p>Click any detected text box on the canvas to edit it.</p>
+      </div>
+    </div>
+    <div id="rp-editor" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="rpanel-header">
+        <div class="rpanel-title" id="rp-title">Text Region #1</div>
+        <div class="rpanel-sub" id="rp-sub">0×0 px at (0, 0)</div>
+      </div>
+      <div class="rpanel-body" id="rp-body">
+        <!-- TEXT CONTENT -->
+        <div class="rp-section">
+          <div class="rp-label">Text Content</div>
+          <div style="position:relative;margin-bottom:8px">
+            <textarea class="rp-textarea" id="rp-text" oninput="livePreview()"></textarea>
+          </div>
+          <div class="rp-btn-row">
+            <button class="rp-icon-btn" onclick="copyText()" data-tip="Copy Text">📋</button>
+            <button class="rp-icon-btn" onclick="document.getElementById('rp-text').value='';livePreview()" data-tip="Clear Field">✕</button>
+            <button class="rp-icon-btn" id="rp-allcaps" onclick="toggleFormat('all_caps')" data-tip="All Caps">AA</button>
+          </div>
+        </div>
+
+        <!-- FONT -->
+        <div class="rp-section">
+          <div class="rp-label">Font</div>
+          <select class="rp-input" id="rp-font" onchange="livePreview()" style="margin-bottom:8px">
+            <option value="lato">Lato (Default)</option>
+            <option value="ubuntu">Ubuntu</option>
+            <option value="arvo">Arvo</option>
+            <option value="tinos">Tinos</option>
+            <option value="ptsans">PT Sans</option>
+            <option value="anton">Anton</option>
+            <option value="bebas">Bebas Neue</option>
+            <option value="">DejaVu Sans (System)</option>
+          </select>
+          <div class="rp-btn-row">
+            <button class="rp-icon-btn" id="rp-bold" onclick="toggleFormat('bold')" data-tip="Bold" data-key="Ctrl B" style="font-weight:700">B</button>
+            <button class="rp-icon-btn" id="rp-italic" onclick="toggleFormat('italic')" data-tip="Italic" data-key="Ctrl I" style="font-style:italic">I</button>
+            <button class="rp-icon-btn" id="rp-underline" onclick="toggleFormat('underline')" data-tip="Underline" data-key="Ctrl U" style="text-decoration:underline">U</button>
+            <button class="rp-icon-btn" id="rp-strike" onclick="toggleFormat('strikethrough')" data-tip="Strikethrough" style="text-decoration:line-through">S</button>
+          </div>
+        </div>
+
+        <!-- SIZE -->
+        <div class="rp-section">
+          <div class="rp-label">Font Size</div>
+          <div class="slider-row">
+            <span class="slider-label">Size</span>
+            <input type="range" class="rp-slider" id="rp-fontsize" min="8" max="200" value="24" oninput="document.getElementById('rp-fontsize-val').textContent=this.value+'px';livePreview()"/>
+            <span class="slider-val" id="rp-fontsize-val">24px</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">Spacing</span>
+            <input type="range" class="rp-slider" id="rp-spacing" min="-10" max="50" value="0" oninput="document.getElementById('rp-spacing-val').textContent=this.value+'px';livePreview()"/>
+            <span class="slider-val" id="rp-spacing-val">0px</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">Line Height</span>
+            <input type="range" class="rp-slider" id="rp-lineheight" min="10" max="30" value="12" oninput="document.getElementById('rp-lh-val').textContent=(this.value/10).toFixed(1);livePreview()"/>
+            <span class="slider-val" id="rp-lh-val">1.2</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">Opacity</span>
+            <input type="range" class="rp-slider" id="rp-opacity" min="10" max="100" value="100" oninput="document.getElementById('rp-opacity-val').textContent=this.value+'%';livePreview()"/>
+            <span class="slider-val" id="rp-opacity-val">100%</span>
+          </div>
+        </div>
+
+        <!-- ALIGNMENT -->
+        <div class="rp-section">
+          <div class="rp-label">Alignment</div>
+          <div class="rp-seg" id="rp-align">
+            <button class="rp-seg-btn active" onclick="setAlign('left')" data-tip="Align Left">☰</button>
+            <button class="rp-seg-btn" onclick="setAlign('center')" data-tip="Align Center">≡</button>
+            <button class="rp-seg-btn" onclick="setAlign('right')" data-tip="Align Right">☰</button>
+            <button class="rp-seg-btn" onclick="setAlign('justify')" data-tip="Justify Text">⊟</button>
+          </div>
+        </div>
+
+        <!-- COLOR -->
+        <div class="rp-section">
+          <div class="rp-label">Color</div>
+          <div class="color-row" style="margin-bottom:8px">
+            <div class="color-swatch" id="color-swatch" style="background:#000000">
+              <input type="color" id="rp-color" value="#000000" oninput="onColorChange(this.value)"/>
+            </div>
+            <input type="text" class="color-hex" id="rp-color-hex" value="#000000" placeholder="#000000" maxlength="7" oninput="onHexInput(this.value)"/>
+            <button class="rp-icon-btn" onclick="useOriginalColor()" data-tip="Use Original Color">↩</button>
+          </div>
+        </div>
+
+        <!-- SHADOW -->
+        <div class="rp-section">
+          <div class="toggle-row">
+            <span class="toggle-label">Drop Shadow</span>
+            <label class="toggle"><input type="checkbox" id="rp-shadow" onchange="toggleShadowPanel()"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div id="shadow-panel" style="display:none">
+            <div class="color-row" style="margin-bottom:8px">
+              <div class="color-swatch" id="shadow-swatch" style="background:#000000">
+                <input type="color" id="rp-shadow-color" value="#000000" oninput="document.getElementById('shadow-swatch').style.background=this.value"/>
+              </div>
+              <input type="text" class="color-hex" value="#000000" id="rp-shadow-hex" maxlength="7"/>
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">Offset X</span>
+              <input type="range" class="rp-slider" id="rp-shadow-x" min="-20" max="20" value="2" oninput="document.getElementById('shadow-x-val').textContent=this.value"/>
+              <span class="slider-val" id="shadow-x-val">2</span>
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">Offset Y</span>
+              <input type="range" class="rp-slider" id="rp-shadow-y" min="-20" max="20" value="2" oninput="document.getElementById('shadow-y-val').textContent=this.value"/>
+              <span class="slider-val" id="shadow-y-val">2</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- OUTLINE -->
+        <div class="rp-section">
+          <div class="toggle-row">
+            <span class="toggle-label">Text Outline</span>
+            <label class="toggle"><input type="checkbox" id="rp-outline" onchange="toggleOutlinePanel()"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+          </div>
+          <div id="outline-panel" style="display:none">
+            <div class="color-row" style="margin-bottom:8px">
+              <div class="color-swatch" id="outline-swatch" style="background:#ffffff">
+                <input type="color" id="rp-outline-color" value="#ffffff" oninput="document.getElementById('outline-swatch').style.background=this.value"/>
+              </div>
+              <input type="text" class="color-hex" value="#ffffff" id="rp-outline-hex" maxlength="7"/>
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">Width</span>
+              <input type="range" class="rp-slider" id="rp-outline-width" min="1" max="8" value="1" oninput="document.getElementById('outline-w-val').textContent=this.value+'px'"/>
+              <span class="slider-val" id="outline-w-val">1px</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRANSFORM -->
+        <div class="rp-section">
+          <div class="rp-label">Transform</div>
+          <div class="rp-btn-row">
+            <button class="rp-icon-btn" onclick="flipH()" data-tip="Flip Horizontal">↔</button>
+            <button class="rp-icon-btn" onclick="flipV()" data-tip="Flip Vertical">↕</button>
+            <button class="rp-icon-btn" onclick="resetTransform()" data-tip="Reset Transform">⟳</button>
+          </div>
+        </div>
+
+        <!-- POSITION -->
+        <div class="rp-section">
+          <div class="rp-label">Position</div>
+          <div class="pos-row">
+            <div class="pos-field">
+              <div class="pos-lbl">X</div>
+              <input type="number" class="pos-inp rp-input" id="pos-x" min="0" value="0" oninput="onPosInput('x', this.value)" style="padding:5px 8px"/>
+            </div>
+            <div class="pos-field">
+              <div class="pos-lbl">Y</div>
+              <input type="number" class="pos-inp rp-input" id="pos-y" min="0" value="0" oninput="onPosInput('y', this.value)" style="padding:5px 8px"/>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:center;margin-bottom:4px">
+            <div style="display:grid;grid-template-columns:repeat(3,24px);grid-template-rows:repeat(2,24px);gap:3px">
+              <div></div>
+              <button class="nudge-btn" onclick="nudgeRegion(0,-1)" data-tip="Move Up (↑ / Shift↑ ×10)">↑</button>
+              <div></div>
+              <button class="nudge-btn" onclick="nudgeRegion(-1,0)" data-tip="Move Left (← / Shift← ×10)">←</button>
+              <button class="nudge-btn" onclick="nudgeRegion(0,1)" data-tip="Move Down (↓ / Shift↓ ×10)">↓</button>
+              <button class="nudge-btn" onclick="nudgeRegion(1,0)" data-tip="Move Right (→ / Shift→ ×10)">→</button>
+            </div>
+          </div>
+          <button class="reset-pos-btn" onclick="resetRegionPos()" data-tip="Snap back to OCR position">↺ Reset to Detected Position</button>
+        </div>
+
+      </div><!-- end rpanel-body -->
+      <div id="proc-steps">
+        <div class="proc-step-row" id="ps1"><div class="proc-step-dot" id="ps1-dot">1</div><span>Downloading image</span></div>
+        <div class="proc-step-row" id="ps2"><div class="proc-step-dot" id="ps2-dot">2</div><span>Analyzing text region</span></div>
+        <div class="proc-step-row" id="ps3"><div class="proc-step-dot" id="ps3-dot">3</div><span>Removing old text</span></div>
+        <div class="proc-step-row" id="ps4"><div class="proc-step-dot" id="ps4-dot">4</div><span>Rendering new text</span></div>
+        <div class="proc-step-row" id="ps5"><div class="proc-step-dot" id="ps5-dot">5</div><span>Uploading result</span></div>
+      </div>
+      <div class="rpanel-actions" id="rpanel-actions">
+        <button class="btn-apply" id="applyBtn" onclick="applyChanges()">
+          ✓ Apply Changes
+        </button>
+        <button class="btn-remove" onclick="removeTextOnly()">⌫ Remove Text Only</button>
+      </div>
+    </div><!-- end rp-editor -->
+  </div><!-- end right-panel -->
+
+</div><!-- end main -->
+
+<!-- STATUS BAR -->
+<div id="status-bar">
+  <div class="status-item" id="status-coords">x: 0, y: 0</div>
+  <div class="status-item" id="status-zoom">Zoom: 100%</div>
+  <div class="status-item" id="status-regions">Regions: 0</div>
+  {% if is_guest %}
+  <div class="status-item" style="color:var(--warn)">⚠ Not saved — <a href="/signup" style="color:var(--brand)">Create account to save</a></div>
+  {% endif %}
+  {% if is_logged %}
+  <div class="status-item" id="autosave-status"></div>
+  {% endif %}
+</div>
+
+<!-- PROCESSING OVERLAY -->
+<div id="proc-overlay">
+  <div class="proc-card">
+    <div class="proc-spinner"></div>
+    <div class="proc-title" id="proc-title">Processing…</div>
+    <div class="proc-step" id="proc-step">Please wait</div>
+  </div>
+</div>
+
+<!-- DRAG TOOLTIP -->
+<div id="drag-tooltip">x: 0 y: 0</div>
+
+<!-- EXPORT MODAL -->
+<div id="export-modal">
+  <div class="exp-modal-card">
+    <button class="exp-close" onclick="closeExportModal()">✕</button>
+    <div class="modal-title" style="margin-bottom:14px">📤 Export Image</div>
+    <img id="exp-preview-img" class="exp-preview" src="" alt="Preview"/>
+
+    <div class="exp-section-label">Format</div>
+    <div class="exp-fmt-row">
+      <button class="exp-fmt-btn active" id="efmt-png" onclick="setExpFmt('PNG')">PNG</button>
+      <button class="exp-fmt-btn" id="efmt-jpg" onclick="setExpFmt('JPG')">JPG</button>
+      <button class="exp-fmt-btn" id="efmt-webp" onclick="setExpFmt('WEBP')">WEBP</button>
+    </div>
+
+    <div class="exp-quality-wrap" id="exp-quality-wrap" style="display:none">
+      <div class="exp-section-label">Quality</div>
+      <div class="exp-quality-row">
+        <input type="range" id="exp-quality" min="10" max="100" value="95" oninput="document.getElementById('exp-q-val').textContent=this.value+'%'"/>
+        <span class="exp-quality-val" id="exp-q-val">95%</span>
+      </div>
+    </div>
+
+    <div class="exp-section-label">Resolution</div>
+    <div class="exp-res-row">
+      <button class="exp-res-btn active" id="eres-original" onclick="setExpRes('original')">Original</button>
+      <button class="exp-res-btn" id="eres-hd" onclick="setExpRes('hd')">HD (1920px)</button>
+      <button class="exp-res-btn" id="eres-2x" onclick="setExpRes('2x')">2× Size</button>
+      <button class="exp-res-btn" id="eres-custom" onclick="setExpRes('custom')">Custom</button>
+    </div>
+    <div class="exp-custom-wh" id="exp-custom-wh">
+      <input type="number" id="exp-cw" placeholder="Width px" min="1" style="background:var(--panel2);color:var(--text);border:1px solid var(--border)"/>
+      <input type="number" id="exp-ch" placeholder="Height px" min="1" style="background:var(--panel2);color:var(--text);border:1px solid var(--border)"/>
+    </div>
+
+    <div class="exp-section-label">Filename</div>
+    <div class="exp-filename-wrap">
+      <input type="text" id="exp-filename" value="textora-edited" placeholder="filename" style="background:var(--panel2);color:var(--text);border:1px solid var(--border)"/>
+    </div>
+
+    <div class="exp-action-row">
+      <button class="exp-dl-btn" onclick="doExport()">⬇ Download Image</button>
+      <button class="exp-share-btn" onclick="copyShareLink()">🔗 Copy Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- GUEST LIMIT MODAL -->
+<div id="guest-limit-modal">
+  <div class="glm-card">
+    <div class="glm-icon">⚡</div>
+    <div class="glm-title">Guest Limit Reached</div>
+    <div class="glm-sub">You've used all 3 guest exports.<br/>Create a free account to get 5 exports per month.</div>
+    <div class="glm-btns">
+      <a href="/signup"><button class="btn-apply">Create Free Account</button></a>
+      <button class="btn-outline" onclick="document.getElementById('guest-limit-modal').style.display='none'" style="padding:12px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid var(--border)">Maybe Later</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div id="help-modal">
+  <div class="help-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="modal-title" style="margin:0">⌨ Keyboard Shortcuts &amp; Help</div>
+      <button onclick="document.getElementById('help-modal').style.display='none'" style="background:none;color:var(--muted);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div class="help-grid">
+      <div style="grid-column:1/-1" class="help-group-title">Selection Tools</div>
+      <div class="shortcut-row"><span class="shortcut-key">V</span><span class="shortcut-desc">Select Tool</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">L</span><span class="shortcut-desc">Lasso Select</span></div>
+      <div style="grid-column:1/-1" class="help-group-title">AI Tools</div>
+      <div class="shortcut-row"><span class="shortcut-key">S</span><span class="shortcut-desc">Scan for Text</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">E</span><span class="shortcut-desc">Color Picker</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">I</span><span class="shortcut-desc">Inpaint Eraser</span></div>
+      <div style="grid-column:1/-1" class="help-group-title">View Tools</div>
+      <div class="shortcut-row"><span class="shortcut-key">H</span><span class="shortcut-desc">Pan Tool</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl +</span><span class="shortcut-desc">Zoom In</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl -</span><span class="shortcut-desc">Zoom Out</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl 0</span><span class="shortcut-desc">Fit to Screen</span></div>
+      <div style="grid-column:1/-1" class="help-group-title">Canvas Tools</div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl G</span><span class="shortcut-desc">Toggle Grid</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl R</span><span class="shortcut-desc">Toggle Ruler</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl ;</span><span class="shortcut-desc">Toggle Guides</span></div>
+      <div style="grid-column:1/-1" class="help-group-title">History</div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl Z</span><span class="shortcut-desc">Undo</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl⇧Z</span><span class="shortcut-desc">Redo</span></div>
+      <div style="grid-column:1/-1" class="help-group-title">Text Editing</div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl B</span><span class="shortcut-desc">Bold</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl I</span><span class="shortcut-desc">Italic</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl U</span><span class="shortcut-desc">Underline</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Enter</span><span class="shortcut-desc">Apply Changes</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Delete</span><span class="shortcut-desc">Remove Text</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Esc</span><span class="shortcut-desc">Deselect</span></div>
+      <div style="grid-column:1/-1" class="help-group-title">File</div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl E</span><span class="shortcut-desc">Export Image</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">Ctrl A</span><span class="shortcut-desc">Select All Regions</span></div>
+      <div class="shortcut-row"><span class="shortcut-key">?</span><span class="shortcut-desc">Open This Help</span></div>
+    </div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:12px">
+      <a href="#" style="font-size:13px;color:var(--brand)">📖 View Documentation</a>
+      <a href="#" style="font-size:13px;color:var(--brand)">✉ Contact Support</a>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS TOAST -->
+<div id="success-toast">✓ Text replaced successfully</div>
+
+<!-- TOOLTIP ELEMENT -->
+<div class="tt" id="global-tooltip">
+  <div class="tt-name" id="tt-name"></div>
+  <div class="tt-key" id="tt-key" style="display:none"></div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────────
+const STATE = {
+  imageUrl: '',
+  originalUrl: '',
+  projectId: '{{ project_id }}' || null,
+  regions: [],
+  selectedIdx: -1,
+  zoom: 1,
+  origW: 0,
+  origH: 0,
+  history: [],      // array of {url, regions} snapshots
+  historyIdx: -1,
+  tool: 'select',
+  gridOn: false,
+  guidesOn: false,
+  rulerOn: false,
+  snapOn: false,
+  formats: {bold:false,italic:false,underline:false,strikethrough:false,all_caps:false},
+  alignment: 'center',
+  isGuest: {{ 'true' if is_guest else 'false' }},
+  isLogged: {{ 'true' if is_logged else 'false' }},
+  originalColor: '#000000',
+  editCount: 0,
+  addTextMode: false,
+  expFmt: 'PNG',
+  expRes: 'original',
+  cleanImageUrl: null,   // last stable rendered image (kept for compat)
+  originalImageUrl: null, // NEVER changes after initial scan — used as base for /apply-all
+  editStack: [],          // one entry per region_id, upserted on every apply
+};
+
+// ──────────────────────────────────────────────
+// TOOLTIP SYSTEM (300ms delay, no title attr)
+// ──────────────────────────────────────────────
+let ttTimer = null;
+const tooltip = document.getElementById('global-tooltip');
+
+document.querySelectorAll('[data-tip]').forEach(el => {
+  el.addEventListener('mouseenter', e => {
+    ttTimer = setTimeout(() => showTooltip(el), 300);
+  });
+  el.addEventListener('mouseleave', () => {
+    clearTimeout(ttTimer);
+    if (tooltip) tooltip.style.opacity = '0';
+  });
+});
+
+function showTooltip(el) {
+  const name = el.getAttribute('data-tip');
+  const key = el.getAttribute('data-key');
+  const ttName = document.getElementById('tt-name');
+  const ttKey = document.getElementById('tt-key');
+  ttName.textContent = name;
+  if (key) { ttKey.textContent = key; ttKey.style.display = 'inline-block'; }
+  else { ttKey.style.display = 'none'; }
+  tooltip.style.opacity = '0';
+  tooltip.style.display = 'block';
+
+  const rect = el.getBoundingClientRect();
+  const tw = tooltip.offsetWidth;
+  const th = tooltip.offsetHeight;
+  let left = rect.right + 8;
+  let top = rect.top + (rect.height - th) / 2;
+  if (left + tw > window.innerWidth - 8) left = rect.left - tw - 8;
+  if (top < 8) top = 8;
+  if (top + th > window.innerHeight - 8) top = window.innerHeight - th - 8;
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = top + 'px';
+  tooltip.style.opacity = '1';
+}
+
+// ──────────────────────────────────────────────
+// FILE UPLOAD & DRAG-DROP
+// ──────────────────────────────────────────────
+const canvasWrap = document.getElementById('canvas-wrap');
+if (canvasWrap) {
+  canvasWrap.addEventListener('dragover', e => { e.preventDefault(); });
+  canvasWrap.addEventListener('drop', e => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) uploadFile(f);
+  });
+}
+
+// Wire file input via addEventListener (not inline onchange) — more reliable
+const _fileInput = document.getElementById('fileInput');
+if (_fileInput) {
+  _fileInput.addEventListener('change', function() {
+    if (this.files[0]) uploadFile(this.files[0]);
+  });
+}
+
+function uploadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    loadImageFromDataUrl(e.target.result, file.name);
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadImageFromDataUrl(dataUrl, name) {
+  const img = document.getElementById('main-img');
+  img.onload = () => {
+    STATE.origW = img.naturalWidth;
+    STATE.origH = img.naturalHeight;
+    document.getElementById('img-container').style.display = 'inline-block';
+    document.getElementById('upload-placeholder').style.display = 'none';
+    document.getElementById('img-size-display').textContent = STATE.origW + ' × ' + STATE.origH + ' px';
+    fitToScreen();
+    document.getElementById('scanBtn').disabled = false;
+    if (name) document.getElementById('projectName').value = name.replace(/\.[^.]+$/, '');
+    renderLayers();
+  };
+  img.src = dataUrl;
+  // Store dataUrl temporarily; real URL set after /detect
+  STATE._pendingDataUrl = dataUrl;
+}
+
+// ──────────────────────────────────────────────
+// SCAN
+// ──────────────────────────────────────────────
+function triggerScan() {
+  const fileInput = document.getElementById('fileInput');
+  if (!STATE.imageUrl && !STATE._pendingDataUrl && !fileInput.files[0]) {
+    fileInput.click(); return;
+  }
+  if (fileInput.files[0]) {
+    doScan(fileInput.files[0]);
+  } else if (STATE._pendingDataUrl) {
+    // Convert dataURL to file
+    fetch(STATE._pendingDataUrl).then(r=>r.blob()).then(blob=>{
+      const f = new File([blob], 'image.png', {type: blob.type});
+      doScan(f);
+    });
+  }
+}
+
+function showScanError(msg, retryFn) {
+  hideProc();
+  const isTimeout = /timed? ?out|timeout|read timeout/i.test(msg);
+  const friendly = isTimeout
+    ? 'The OCR service took too long to respond. This sometimes happens with large or complex images.'
+    : 'Text detection failed. The OCR service may be temporarily unavailable.';
+  const hint = isTimeout
+    ? 'Try again with a smaller image, or wait a moment and retry.'
+    : 'Please try again in a few seconds.';
+  // Show toast + offer retry
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:#1C1C22;border:1px solid #FF5C3A;border-radius:14px;
+    padding:16px 22px;z-index:9999;max-width:420px;width:90%;
+    box-shadow:0 8px 32px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:10px;
+  `;
+  toast.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#FF5C3A" stroke-width="2"/><path d="M12 8v4m0 4h.01" stroke="#FF5C3A" stroke-width="2" stroke-linecap="round"/></svg>
+      <span style="color:#fff;font-weight:600;font-size:14px;">Scan failed</span>
+      <button onclick="this.closest('div[data-scan-err]').remove()" style="margin-left:auto;background:none;border:none;color:#888;cursor:pointer;font-size:18px;line-height:1;">×</button>
+    </div>
+    <p style="color:#aaa;font-size:13px;margin:0;">${friendly}<br><span style="color:#666;font-size:12px;">${hint}</span></p>
+    <div style="display:flex;gap:8px;">
+      <button id="_scanRetryBtn" style="flex:1;padding:8px 16px;background:#FF5C3A;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Try Again</button>
+      <button onclick="this.closest('[data-scan-err]').remove()" style="padding:8px 16px;background:#2a2a35;color:#aaa;border:1px solid #333;border-radius:8px;font-size:13px;cursor:pointer;">Dismiss</button>
+    </div>
+  `;
+  toast.dataset.scanErr = '1';
+  document.body.appendChild(toast);
+  toast.querySelector('#_scanRetryBtn').onclick = () => { toast.remove(); retryFn(); };
+  // Auto-remove after 15 s
+  setTimeout(() => toast.isConnected && toast.remove(), 15000);
+}
+
+async function doScan(file) {
+  // Remove any previous scan error toast
+  document.querySelectorAll('[data-scan-err]').forEach(el => el.remove());
+  showProc('Scanning for Text…', 'Sending to OCR.space API…');
+  const fd = new FormData();
+  fd.append('image', file);
+  try {
+    const r = await fetch('/detect', {method:'POST', body:fd});
+    let data;
+    const rawText = await r.text();
+    try {
+      data = JSON.parse(rawText);
+    } catch(_) {
+      const statusMsg = r.status === 504
+        ? 'timed out — server took too long'
+        : `server error (${r.status})`;
+      showScanError(statusMsg, () => doScan(file));
+      return;
+    }
+    hideProc();
+    if (data.error) { showScanError(data.error, () => doScan(file)); return; }
+    STATE.imageUrl = data.image_url;
+    STATE.originalUrl = data.image_url;
+    STATE.origW = data.original_width;
+    STATE.origH = data.original_height;
+    STATE.regions = data.text_regions || [];
+    STATE.regions.forEach(r => { r._origX = r.x; r._origY = r.y; r._origW = r.width; r._origH = r.height; });
+    STATE.cleanImageUrl = data.image_url;
+    STATE.originalImageUrl = data.image_url;  // locked — never changes, always the clean original
+    STATE.editStack = [];                      // fresh stack on every new scan
+    STATE.projectId = data.project_id || STATE.projectId;
+
+    // Wait for image to fully load before drawing bboxes (correct scaling)
+    const img = document.getElementById('main-img');
+    img.onload = () => {
+      pushHistory(STATE.imageUrl);
+      document.getElementById('img-container').style.display = 'inline-block';
+      document.getElementById('upload-placeholder').style.display = 'none';
+      document.getElementById('img-size-display').textContent = STATE.origW + ' × ' + STATE.origH + ' px';
+      document.getElementById('status-regions').textContent = 'Regions: ' + STATE.regions.length;
+      renderLayers();
+      fitToScreen();
+      // Render bboxes after fitToScreen sets the display size
+      requestAnimationFrame(() => renderBBoxes());
+    };
+    img.src = STATE.imageUrl + '?t=' + Date.now();
+  } catch(e) {
+    hideProc();
+    alert('Scan failed: ' + e.message);
+  }
+}
+
+// ──────────────────────────────────────────────
+// BOUNDING BOXES + DRAG
+// ──────────────────────────────────────────────
+const COLORS = ['#FF5C3A','#3EFFA8','#F59E0B','#60A5FA','#F472B6','#34D399','#A78BFA','#FB923C'];
+
+const _svgDrag = { active: false, regionIdx: -1, startX: 0, startY: 0, startRX: 0, startRY: 0 };
+
+function renderBBoxes() {
+  const svg = document.getElementById('bbox-svg');
+  svg.innerHTML = '';
+  const img = document.getElementById('main-img');
+
+  const originalWidth = STATE.origW;
+  const originalHeight = STATE.origH;
+  const displayedWidth = img.offsetWidth || img.clientWidth;
+  const displayedHeight = img.offsetHeight || img.clientHeight;
+
+  if (!originalWidth || !displayedWidth) return;
+
+  const scaleX = displayedWidth / originalWidth;
+  const scaleY = displayedHeight / originalHeight;
+
+  svg.setAttribute('viewBox', `0 0 ${displayedWidth} ${displayedHeight}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+
+  // ── SVG-level drag handlers ──
+  svg.onmousemove = (e) => {
+    if (!_svgDrag.active) return;
+    const svgRect = svg.getBoundingClientRect();
+    const svgX = (e.clientX - svgRect.left) * (displayedWidth / svgRect.width);
+    const svgY = (e.clientY - svgRect.top)  * (displayedHeight / svgRect.height);
+    const dx = svgX - _svgDrag.startX;
+    const dy = svgY - _svgDrag.startY;
+    const r = STATE.regions[_svgDrag.regionIdx];
+    if (!r) return;
+
+    const newSvgX = Math.max(0, Math.min(displayedWidth - r.width*scaleX, _svgDrag.startSvgX + dx));
+    const newSvgY = Math.max(0, Math.min(displayedHeight - r.height*scaleY, _svgDrag.startSvgY + dy));
+    r.x = Math.round(newSvgX / scaleX);
+    r.y = Math.round(newSvgY / scaleY);
+
+    // Move SVG rect live
+    const rectEl = svg.querySelector(`rect[data-idx="${_svgDrag.regionIdx}"]`);
+    const lblEl  = svg.querySelector(`text[data-idx="${_svgDrag.regionIdx}"]`);
+    if (rectEl) { rectEl.setAttribute('x', newSvgX); rectEl.setAttribute('y', newSvgY); }
+    if (lblEl)  { lblEl.setAttribute('x', newSvgX + 3); lblEl.setAttribute('y', Math.max(12, newSvgY - 4)); }
+
+    // Update pos inputs and status
+    if (STATE.selectedIdx === _svgDrag.regionIdx) {
+      document.getElementById('pos-x').value = r.x;
+      document.getElementById('pos-y').value = r.y;
+      document.getElementById('rp-sub').textContent = `${r.width}×${r.height}px at (${r.x}, ${r.y})`;
+    }
+    // Show drag tooltip
+    const tip = document.getElementById('drag-tooltip');
+    tip.textContent = `x: ${r.x}  y: ${r.y}`;
+    tip.style.display = 'block';
+    tip.style.left = e.clientX + 'px';
+    tip.style.top  = e.clientY + 'px';
+  };
+
+  svg.onmouseup = svg.onmouseleave = () => {
+    if (_svgDrag.active) {
+      // Remove ghost box from original position
+      const ghost = svg.querySelector(`#ghost-bbox-${_svgDrag.regionIdx}`);
+      if (ghost) ghost.remove();
+      _svgDrag.active = false;
+      document.getElementById('drag-tooltip').style.display = 'none';
+      svg.style.cursor = 'default';
+    }
+  };
+
+  STATE.regions.forEach((r, i) => {
+    const color = COLORS[i % COLORS.length];
+    const scaledX = r.x * scaleX;
+    const scaledY = r.y * scaleY;
+    const scaledW = r.width  * scaleX;
+    const scaledH = r.height * scaleY;
+    const isSelected = (i === STATE.selectedIdx);
+
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', scaledX);
+    rect.setAttribute('y', scaledY);
+    rect.setAttribute('width', scaledW);
+    rect.setAttribute('height', scaledH);
+    rect.setAttribute('fill', `${color}${isSelected ? '30' : '18'}`);
+    rect.setAttribute('stroke', color);
+    rect.setAttribute('stroke-width', isSelected ? 3 : 2);
+    rect.setAttribute('rx', 3);
+    rect.setAttribute('class', 'bbox-rect');
+    rect.setAttribute('data-idx', i);
+    rect.style.cursor = 'grab';
+
+    // Drag: mousedown on rect
+    rect.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      const svgRect = svg.getBoundingClientRect();
+      const svgX = (e.clientX - svgRect.left) * (displayedWidth / svgRect.width);
+      const svgY = (e.clientY - svgRect.top)  * (displayedHeight / svgRect.height);
+      _svgDrag.active     = true;
+      _svgDrag.regionIdx  = i;
+      _svgDrag.startX     = svgX;
+      _svgDrag.startY     = svgY;
+      _svgDrag.startSvgX  = r.x * scaleX;
+      _svgDrag.startSvgY  = r.y * scaleY;
+      svg.style.cursor    = 'grabbing';
+
+      // Ghost box — shows original position while dragging
+      const ghostId = `ghost-bbox-${i}`;
+      svg.querySelector(`#${ghostId}`)?.remove();
+      const ghost = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      ghost.setAttribute('id', ghostId);
+      ghost.setAttribute('x', r.x * scaleX);
+      ghost.setAttribute('y', r.y * scaleY);
+      ghost.setAttribute('width',  r.width  * scaleX);
+      ghost.setAttribute('height', r.height * scaleY);
+      ghost.setAttribute('fill', 'none');
+      ghost.setAttribute('stroke', 'rgba(255,255,255,0.3)');
+      ghost.setAttribute('stroke-width', '1');
+      ghost.setAttribute('stroke-dasharray', '4 3');
+      ghost.style.pointerEvents = 'none';
+      svg.appendChild(ghost);
+    });
+
+    // Click (no drag): select region
+    rect.addEventListener('click', (e) => {
+      if (!_svgDrag.active) selectRegion(i);
+    });
+
+    svg.appendChild(rect);
+
+    // Label above box
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', scaledX + 3);
+    text.setAttribute('y', Math.max(12, scaledY - 4));
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', Math.max(9, Math.min(13, scaledH * 0.4)));
+    text.setAttribute('font-family', 'DM Sans, sans-serif');
+    text.setAttribute('font-weight', '600');
+    text.setAttribute('pointer-events', 'none');
+    text.setAttribute('data-idx', i);
+    text.textContent = r.text.length > 20 ? r.text.slice(0,18)+'…' : r.text;
+    svg.appendChild(text);
+  });
+
+  // Add-text-mode click to place new box
+  if (STATE.addTextMode) {
+    svg.classList.add('add-text-mode');
+    svg.onclick = (e) => {
+      if (_svgDrag.active) return;
+      const svgRect = svg.getBoundingClientRect();
+      const svgX = (e.clientX - svgRect.left) * (displayedWidth / svgRect.width);
+      const svgY = (e.clientY - svgRect.top)  * (displayedHeight / svgRect.height);
+      const newX = Math.round(svgX / scaleX);
+      const newY = Math.round(svgY / scaleY);
+      placeNewTextRegion(newX, newY);
+    };
+  } else {
+    svg.classList.remove('add-text-mode');
+    svg.onclick = null;
+  }
+}
+
+function selectRegion(idx) {
+  STATE.selectedIdx = idx;
+  const r = STATE.regions[idx];
+  if (!r) return;
+
+  // Update SVG selection
+  document.querySelectorAll('.bbox-rect').forEach((el, i) => {
+    el.style.strokeWidth = i === idx ? '3' : '2';
+    el.style.fillOpacity = i === idx ? '0.2' : '0.08';
+  });
+
+  // Update layers list
+  document.querySelectorAll('.chip').forEach((el, i) => el.classList.toggle('selected', i===idx));
+
+  // Show right panel
+  document.getElementById('rp-empty').style.display = 'none';
+  document.getElementById('rp-editor').style.display = 'flex';
+
+  // Populate fields
+  document.getElementById('rp-title').textContent = 'Region #' + (idx+1);
+  document.getElementById('rp-sub').textContent = `${r.width}×${r.height}px at (${r.x}, ${r.y})`;
+  document.getElementById('rp-text').value = r.text;
+
+  // Auto font size — 75 % of bbox height matches original text size
+  const guessSize = Math.max(10, Math.min(150, Math.round(r.height * 0.75)));
+  const fs = document.getElementById('rp-fontsize');
+  fs.value = guessSize;
+  document.getElementById('rp-fontsize-val').textContent = guessSize + 'px';
+
+  // Auto color — pre-fill with detected text color from the image
+  if (r.detected_color) {
+    document.getElementById('rp-color').value = r.detected_color;
+    document.getElementById('rp-color-hex').value = r.detected_color;
+    STATE.originalColor = r.detected_color;
+  }
+
+  // Fill X/Y position inputs (Feature 5)
+  document.getElementById('pos-x').value = r.x;
+  document.getElementById('pos-y').value = r.y;
+
+  // Store original OCR position for Reset Position (Feature 3)
+  if (r._origX === undefined) { r._origX = r.x; r._origY = r.y; }
+
+  // Reset formats
+  STATE.formats = {bold:false, italic:false, underline:false, strikethrough:false, all_caps:false};
+  updateFormatBtns();
+  STATE.alignment = 'center';
+  setAlign('center');
+}
+
+// ──────────────────────────────────────────────
+// LAYERS PANEL
+// ──────────────────────────────────────────────
+function renderLayers() {
+  const list = document.getElementById('layers-list');
+  // Show/hide Add Text + Re-scan buttons based on image state
+  const hasImage = !!STATE.imageUrl;
+  const addBtn = document.getElementById('addTextBtn');
+  const rsBtn  = document.getElementById('rescanBtn');
+  const counter = document.getElementById('edit-counter');
+  if (addBtn) addBtn.style.display = hasImage ? '' : 'none';
+  if (rsBtn)  rsBtn.style.display  = hasImage ? '' : 'none';
+  if (counter && STATE.editCount > 0) counter.style.display = 'flex';
+
+  if (!STATE.regions.length) {
+    list.innerHTML = '<div class="empty-panel"><span class="empty-icon">🔍</span>No text detected yet</div>';
+    return;
+  }
+  list.innerHTML = STATE.regions.map((r, i) => `
+    <div class="chip ${i===STATE.selectedIdx?'selected':''}" onclick="selectRegion(${i})">
+      <div class="chip-top">
+        <span class="chip-badge ${r.type==='rotated'?'chip-rotated':'chip-straight'}">${r.type||'straight'}</span>
+        <span class="chip-text">${r.text||'(empty)'}</span>
+      </div>
+      <div class="chip-meta">${r.width}×${r.height}px · ${r.confidence}% conf</div>
+    </div>
+  `).join('');
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.panel-tab').forEach((el,i) => el.classList.toggle('active', (i===0&&tab==='layers')||(i===1&&tab==='history')));
+  document.getElementById('tab-layers').style.display = tab==='layers'?'block':'none';
+  document.getElementById('tab-history').style.display = tab==='history'?'block':'none';
+  if (tab==='history') renderHistoryPanel();
+}
+
+function renderHistoryPanel() {
+  const list = document.getElementById('history-list');
+  if (!STATE.history.length) {
+    list.innerHTML = '<div class="empty-panel"><span class="empty-icon">⏱</span>No history yet</div>'; return;
+  }
+  list.innerHTML = STATE.history.map((entry, i) => {
+    const url = typeof entry === 'string' ? entry : entry.url;
+    return `
+    <div class="chip ${i===STATE.historyIdx?'selected':''}" onclick="jumpHistory(${i})" style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;color:var(--muted)">#${i+1}</span>
+      <img src="${url}" style="width:40px;height:28px;object-fit:cover;border-radius:4px;border:1px solid var(--border)"/>
+      <span style="font-size:12px">${i===0?'Original':i===STATE.historyIdx?'Current':'Edit '+i}</span>
+    </div>`;
+  }).join('');
+}
+
+// ──────────────────────────────────────────────
+// 5-STEP PROC PANEL
+// ──────────────────────────────────────────────
+let _procStepTimer = null;
+
+function showProcSteps() {
+  document.getElementById('proc-steps').style.display = 'flex';
+  document.getElementById('rpanel-actions').style.display = 'none';
+  // Reset all steps
+  [1,2,3,4,5].forEach(i => {
+    const row = document.getElementById('ps' + i);
+    row.className = 'proc-step-row';
+    row.querySelector('.proc-step-dot').textContent = i;
+  });
+  // Animate steps with delays
+  const delays = [0, 300, 700, 1200, 1800];
+  delays.forEach((delay, i) => {
+    setTimeout(() => {
+      // Mark previous as done
+      if (i > 0) {
+        const prev = document.getElementById('ps' + i);
+        prev.className = 'proc-step-row done';
+        prev.querySelector('.proc-step-dot').textContent = '✓';
+      }
+      // Mark current as active
+      const cur = document.getElementById('ps' + (i + 1));
+      if (cur) cur.className = 'proc-step-row active';
+    }, delay);
+  });
+}
+
+function hideProcSteps(success) {
+  clearTimeout(_procStepTimer);
+  if (success) {
+    // Mark all done
+    [1,2,3,4,5].forEach(i => {
+      const row = document.getElementById('ps' + i);
+      row.className = 'proc-step-row done';
+      row.querySelector('.proc-step-dot').textContent = '✓';
+    });
+    setTimeout(() => {
+      document.getElementById('proc-steps').style.display = 'none';
+      document.getElementById('rpanel-actions').style.display = 'flex';
+    }, 400);
+  } else {
+    document.getElementById('proc-steps').style.display = 'none';
+    document.getElementById('rpanel-actions').style.display = 'flex';
+  }
+}
+
+// ──────────────────────────────────────────────
+// SUCCESS TOAST
+// ──────────────────────────────────────────────
+let _toastTimer = null;
+function showSuccessToast(msg) {
+  const t = document.getElementById('success-toast');
+  t.textContent = '✓ ' + (msg || 'Text replaced successfully');
+  t.classList.add('visible');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('visible'), 3000);
+}
+
+// ──────────────────────────────────────────────
+// APPLY CHANGES  (edit-stack approach — no stacking ever)
+// ──────────────────────────────────────────────
+async function applyChanges() {
+  if (STATE.selectedIdx < 0) { alert('Please select a text region first.'); return; }
+  const r = STATE.regions[STATE.selectedIdx];
+  if (!STATE.imageUrl) { alert('No image loaded.'); return; }
+
+  const editedIdx = STATE.selectedIdx;
+
+  // Build the edit object for this region
+  const newEdit = {
+    region_id: r.id !== undefined ? r.id : editedIdx,
+    // Where the ORIGINAL text lives in the clean image (for erasure)
+    orig_x: r._origX !== undefined ? r._origX : r.x,
+    orig_y: r._origY !== undefined ? r._origY : r.y,
+    orig_w: r._origW !== undefined ? r._origW : r.width,
+    orig_h: r._origH !== undefined ? r._origH : r.height,
+    // Where to draw the new text (may differ if user dragged the box)
+    x: r.x, y: r.y, w: r.width, h: r.height,
+    text:          document.getElementById('rp-text').value,
+    font_size:     parseInt(document.getElementById('rp-fontsize').value),
+    text_color:    document.getElementById('rp-color').value,
+    bold:          STATE.formats.bold,
+    italic:        STATE.formats.italic,
+    underline:     STATE.formats.underline,
+    strikethrough: STATE.formats.strikethrough,
+    all_caps:      STATE.formats.all_caps,
+    letter_spacing: parseInt(document.getElementById('rp-spacing').value),
+    line_height:   parseFloat(document.getElementById('rp-lineheight').value) / 10,
+    alignment:     STATE.alignment,
+    opacity:       parseInt(document.getElementById('rp-opacity').value),
+    font_name:     document.getElementById('rp-font').value,
+    shadow_enabled:  document.getElementById('rp-shadow').checked,
+    shadow_color:    document.getElementById('rp-shadow-color').value,
+    shadow_offset_x: parseInt(document.getElementById('rp-shadow-x').value),
+    shadow_offset_y: parseInt(document.getElementById('rp-shadow-y').value),
+    outline_enabled: document.getElementById('rp-outline').checked,
+    outline_color:   document.getElementById('rp-outline-color').value,
+    outline_width:   parseInt(document.getElementById('rp-outline-width').value),
+  };
+
+  // Upsert into edit stack — one entry per region, no stacking possible
+  const existingIdx = STATE.editStack.findIndex(e => e.region_id === newEdit.region_id);
+  let prevEdit = null;
+  if (existingIdx !== -1) {
+    prevEdit = STATE.editStack[existingIdx];     // save for rollback
+    STATE.editStack[existingIdx] = newEdit;
+  } else {
+    STATE.editStack.push(newEdit);
+  }
+  const sendOrigUrl = STATE.originalImageUrl || STATE.originalUrl || STATE.imageUrl;
+  console.log('[APPLY-ALL] stack:', STATE.editStack.length, 'edit:', newEdit);
+  console.log('[APPLY-ALL] originalImageUrl:', sendOrigUrl ? sendOrigUrl.substring(0, 60) : 'NULL — using imageUrl fallback');
+  if (!sendOrigUrl) {
+    hideProcSteps(false);
+    alert('No original image URL available. Please re-scan the image.');
+    return;
+  }
+
+  showProcSteps();
+
+  try {
+    const resp = await fetch('/apply-all', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        original_url: sendOrigUrl,
+        edits: STATE.editStack,
+        project_id: STATE.projectId,
+      }),
+    });
+
+    const responseText = await resp.text();
+    console.log('[APPLY-ALL] raw response (' + resp.status + '):', responseText.substring(0, 200));
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseErr) {
+      console.error('[APPLY-ALL] not JSON:', responseText);
+      hideProcSteps(false);
+      // rollback
+      if (existingIdx !== -1) STATE.editStack[existingIdx] = prevEdit;
+      else STATE.editStack.pop();
+      alert('Server error (not JSON): ' + responseText.substring(0, 150));
+      return;
+    }
+
+    if (data.error === 'GUEST_LIMIT') {
+      hideProcSteps(false);
+      if (existingIdx !== -1) STATE.editStack[existingIdx] = prevEdit;
+      else STATE.editStack.pop();
+      document.getElementById('guest-limit-modal').style.display = 'flex'; return;
+    }
+    if (!data.success || data.error) {
+      hideProcSteps(false);
+      if (existingIdx !== -1) STATE.editStack[existingIdx] = prevEdit;
+      else STATE.editStack.pop();
+      console.error('[APPLY-ALL] error:', data);
+      alert('Error: ' + (data.error || 'Unknown error') + (data.details ? '\n\n' + data.details.substring(0, 300) : ''));
+      return;
+    }
+
+    const newUrl = data.edited_image_url;
+    if (!newUrl) {
+      hideProcSteps(false);
+      if (existingIdx !== -1) STATE.editStack[existingIdx] = prevEdit;
+      else STATE.editStack.pop();
+      alert('Server returned success but no image URL. Check console.');
+      return;
+    }
+
+    // Update region text in sidebar
+    STATE.regions[editedIdx].text = newEdit.text;
+    STATE.imageUrl = newUrl;
+    STATE.cleanImageUrl = newUrl;
+
+    const img = document.getElementById('main-img');
+    img.onload = () => {
+      hideProcSteps(true);
+      pushHistory(newUrl);
+
+      STATE.selectedIdx = editedIdx;
+
+      // Keep _orig* pointing to the OCR position so drag-erase always targets the right spot
+      // (we do NOT update _orig* here — those always stay as the original OCR coords)
+
+      requestAnimationFrame(() => requestAnimationFrame(() => renderBBoxes()));
+      renderLayers();
+
+      STATE.editCount++;
+      updateEditCounter();
+      document.getElementById('status-regions').textContent = 'Regions: ' + STATE.regions.length;
+      showSuccessToast('Text replaced — click the box again to edit further');
+      document.getElementById('rp-sub').textContent =
+        `${r.width}×${r.height}px at (${r.x}, ${r.y})`;
+
+      if (data.guest_exports_remaining !== undefined) {
+        updateGuestExports(data.guest_exports_remaining);
+      }
+    };
+    img.src = newUrl;
+
+  } catch(e) {
+    hideProcSteps(false);
+    if (existingIdx !== -1) STATE.editStack[existingIdx] = prevEdit;
+    else STATE.editStack.pop();
+    console.error('[APPLY-ALL] fetch failed:', e);
+    alert('Apply failed: ' + e.message);
+  }
+}
+
+// ──────────────────────────────────────────────
+// REMOVE TEXT ONLY
+// Routes through /apply-all using the ORIGINAL clean Cloudinary image so the
+// Coons-patch samples clean background pixels (not previously edited pixels).
+// ──────────────────────────────────────────────
+async function removeTextOnly() {
+  if (STATE.selectedIdx < 0) { alert('Select a region first.'); return; }
+  const r = STATE.regions[STATE.selectedIdx];
+  showProc('Removing Text…', 'Reconstructing background…');
+  try {
+    // Build a removal entry (text="" tells apply-all to erase only, no redraw)
+    const removalEdit = {
+      region_id: r.id,
+      orig_x: r.orig_x !== undefined ? r.orig_x : r.x,
+      orig_y: r.orig_y !== undefined ? r.orig_y : r.y,
+      orig_w: r.orig_w !== undefined ? r.orig_w : r.width,
+      orig_h: r.orig_h !== undefined ? r.orig_h : r.height,
+      x: r.x, y: r.y, w: r.width, h: r.height,
+      text: '',
+    };
+
+    // All other current edits stay; this region is erased
+    const otherEdits = STATE.editStack.filter(e => e.region_id !== r.id);
+    const allEdits = [...otherEdits, removalEdit];
+
+    // ALWAYS use the original Cloudinary URL — never the edited canvas data URL
+    const sendOrigUrl = STATE.originalImageUrl || STATE.originalUrl || STATE.imageUrl;
+    console.log('[REMOVE] routing via /apply-all, origUrl:', sendOrigUrl ? sendOrigUrl.substring(0, 60) : 'NULL');
+
+    const resp = await fetch('/apply-all', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ original_url: sendOrigUrl, edits: allEdits }),
+    });
+
+    const responseText = await resp.text();
+    let data;
+    try { data = JSON.parse(responseText); }
+    catch (e) {
+      hideProc();
+      alert('Server error: ' + responseText.substring(0, 150));
+      return;
+    }
+
+    hideProc();
+    if (data.error === 'GUEST_LIMIT') { document.getElementById('guest-limit-modal').style.display='flex'; return; }
+    if (!data.success || !data.edited_image_url) { alert('Remove failed: ' + (data.error || 'Unknown')); return; }
+
+    // Drop this region from regions list and editStack
+    STATE.editStack = STATE.editStack.filter(e => e.region_id !== r.id);
+    STATE.regions.splice(STATE.selectedIdx, 1);
+
+    STATE.imageUrl = data.edited_image_url;
+    const imgEl = document.getElementById('main-img');
+    imgEl.src = data.edited_image_url;
+    pushHistory(STATE.imageUrl);
+    STATE.selectedIdx = -1;
+    document.getElementById('rp-empty').style.display = 'flex';
+    document.getElementById('rp-editor').style.display = 'none';
+    if (typeof drawBoxes === 'function') drawBoxes();
+    if (data.guest_exports_remaining !== undefined) updateGuestExports(data.guest_exports_remaining);
+  } catch(e) {
+    hideProc();
+    console.error('[REMOVE] failed:', e);
+    alert('Remove failed: ' + e.message);
+  }
+}
+
+// ──────────────────────────────────────────────
+// HISTORY / UNDO / REDO
+// ──────────────────────────────────────────────
+function deepCopyRegions(regions) {
+  return regions.map(r => Object.assign({}, r));
+}
+
+function pushHistory(url) {
+  STATE.history = STATE.history.slice(0, STATE.historyIdx + 1);
+  STATE.history.push({
+    url,
+    regions: deepCopyRegions(STATE.regions),
+    editStack: JSON.parse(JSON.stringify(STATE.editStack)),
+  });
+  STATE.historyIdx = STATE.history.length - 1;
+  updateHistoryBtns();
+}
+
+function undoHistory() {
+  if (STATE.historyIdx <= 0) return;
+  STATE.historyIdx--;
+  applyHistoryEntry(STATE.history[STATE.historyIdx]);
+}
+
+function redoHistory() {
+  if (STATE.historyIdx >= STATE.history.length - 1) return;
+  STATE.historyIdx++;
+  applyHistoryEntry(STATE.history[STATE.historyIdx]);
+}
+
+function jumpHistory(idx) {
+  STATE.historyIdx = idx;
+  applyHistoryEntry(STATE.history[idx]);
+}
+
+function applyHistoryEntry(entry) {
+  const url = typeof entry === 'string' ? entry : entry.url;
+  STATE.imageUrl = url;
+  STATE.cleanImageUrl = url;
+  document.getElementById('main-img').src = url.startsWith('data:') ? url : url + '?t=' + Date.now();
+  if (entry.regions) {
+    STATE.regions = deepCopyRegions(entry.regions);
+    requestAnimationFrame(() => renderBBoxes());
+    renderLayers();
+    document.getElementById('status-regions').textContent = 'Regions: ' + STATE.regions.length;
+  }
+  // Restore edit stack so next apply-all starts from the right state
+  if (entry.editStack !== undefined) {
+    STATE.editStack = JSON.parse(JSON.stringify(entry.editStack));
+  }
+  updateHistoryBtns();
+  STATE.selectedIdx = -1;
+  document.getElementById('rp-empty').style.display='flex';
+  document.getElementById('rp-editor').style.display='none';
+}
+
+function updateHistoryBtns() {
+  document.getElementById('undoBtn').disabled = STATE.historyIdx <= 0;
+  document.getElementById('redoBtn').disabled = STATE.historyIdx >= STATE.history.length - 1;
+}
+
+// ──────────────────────────────────────────────
+// ZOOM & CANVAS
+// ──────────────────────────────────────────────
+function fitToScreen() {
+  const wrap = document.getElementById('canvas-wrap');
+  const img = document.getElementById('main-img');
+  if (!img.naturalWidth) return;
+  const pw = wrap.clientWidth - 40;
+  const ph = wrap.clientHeight - 40;
+  const zx = pw / img.naturalWidth;
+  const zy = ph / img.naturalHeight;
+  STATE.zoom = Math.min(zx, zy, 1);
+  applyZoom();
+}
+
+function zoomBy(delta) {
+  STATE.zoom = Math.max(0.1, Math.min(5, STATE.zoom + delta));
+  applyZoom();
+}
+
+function applyZoom() {
+  const container = document.getElementById('img-container');
+  const img = document.getElementById('main-img');
+  const w = img.naturalWidth * STATE.zoom;
+  const h = img.naturalHeight * STATE.zoom;
+  container.style.width = w + 'px';
+  container.style.height = h + 'px';
+  img.style.width = w + 'px';
+  img.style.height = h + 'px';
+  const grid = document.getElementById('grid-overlay');
+  grid.style.width = w + 'px';
+  grid.style.height = h + 'px';
+  grid.width = w; grid.height = h;
+  if (STATE.gridOn) drawGrid();
+  document.getElementById('zoom-display').textContent = Math.round(STATE.zoom * 100) + '%';
+  document.getElementById('status-zoom').textContent = 'Zoom: ' + Math.round(STATE.zoom*100) + '%';
+}
+
+// ──────────────────────────────────────────────
+// GRID
+// ──────────────────────────────────────────────
+function toggleGrid() {
+  STATE.gridOn = !STATE.gridOn;
+  const grid = document.getElementById('grid-overlay');
+  grid.style.display = STATE.gridOn ? 'block' : 'none';
+  document.getElementById('tb-grid').classList.toggle('toggled', STATE.gridOn);
+  document.getElementById('ct-grid').classList.toggle('active', STATE.gridOn);
+  if (STATE.gridOn) drawGrid();
+}
+
+function drawGrid() {
+  const grid = document.getElementById('grid-overlay');
+  const ctx = grid.getContext('2d');
+  const size = 20 * STATE.zoom;
+  ctx.clearRect(0, 0, grid.width, grid.height);
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < grid.width; x += size) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, grid.height); ctx.stroke(); }
+  for (let y = 0; y < grid.height; y += size) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(grid.width, y); ctx.stroke(); }
+}
+
+function toggleRuler() {
+  STATE.rulerOn = !STATE.rulerOn;
+  document.getElementById('tb-ruler').classList.toggle('toggled', STATE.rulerOn);
+  document.getElementById('ct-ruler').classList.toggle('active', STATE.rulerOn);
+}
+
+function toggleGuides() {
+  STATE.guidesOn = !STATE.guidesOn;
+  document.getElementById('tb-guides').classList.toggle('toggled', STATE.guidesOn);
+  document.getElementById('ct-guides').classList.toggle('active', STATE.guidesOn);
+}
+
+function toggleSnap() {
+  STATE.snapOn = !STATE.snapOn;
+  document.getElementById('tb-snap').classList.toggle('toggled', STATE.snapOn);
+}
+
+// ──────────────────────────────────────────────
+// TOOLS
+// ──────────────────────────────────────────────
+function setTool(tool) {
+  STATE.tool = tool;
+  document.querySelectorAll('.tool-btn[id^="tb-"]').forEach(el => el.classList.remove('active'));
+  const btn = document.getElementById('tb-' + tool);
+  if (btn) btn.classList.add('active');
+  canvasWrap.classList.toggle('pan-mode', tool === 'pan');
+}
+
+// ──────────────────────────────────────────────
+// FORMAT BUTTONS
+// ──────────────────────────────────────────────
+function toggleFormat(key) {
+  STATE.formats[key] = !STATE.formats[key];
+  updateFormatBtns();
+  livePreview();
+}
+
+function updateFormatBtns() {
+  ['bold','italic','underline','strikethrough','all_caps'].forEach(k => {
+    const btn = document.getElementById('rp-' + k);
+    if (btn) btn.classList.toggle('active', STATE.formats[k]);
+  });
+}
+
+function setAlign(a) {
+  STATE.alignment = a;
+  document.querySelectorAll('#rp-align .rp-seg-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['left','center','right','justify'][i] === a);
+  });
+}
+
+// ──────────────────────────────────────────────
+// COLOR
+// ──────────────────────────────────────────────
+function onColorChange(v) {
+  document.getElementById('color-swatch').style.background = v;
+  document.getElementById('rp-color-hex').value = v;
+}
+
+function onHexInput(v) {
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    document.getElementById('rp-color').value = v;
+    document.getElementById('color-swatch').style.background = v;
+  }
+}
+
+function useOriginalColor() {
+  document.getElementById('rp-color').value = STATE.originalColor;
+  onColorChange(STATE.originalColor);
+}
+
+function copyText() {
+  const t = document.getElementById('rp-text').value;
+  navigator.clipboard.writeText(t).catch(()=>{});
+}
+
+// ──────────────────────────────────────────────
+// SHADOW / OUTLINE PANELS
+// ──────────────────────────────────────────────
+function toggleShadowPanel() {
+  const on = document.getElementById('rp-shadow').checked;
+  document.getElementById('shadow-panel').style.display = on ? 'block' : 'none';
+}
+function toggleOutlinePanel() {
+  const on = document.getElementById('rp-outline').checked;
+  document.getElementById('outline-panel').style.display = on ? 'block' : 'none';
+}
+
+// ──────────────────────────────────────────────
+// TRANSFORM
+// ──────────────────────────────────────────────
+function flipH() { document.getElementById('main-img').style.transform += ' scaleX(-1)'; }
+function flipV() { document.getElementById('main-img').style.transform += ' scaleY(-1)'; }
+function resetTransform() { document.getElementById('main-img').style.transform = ''; }
+
+// ──────────────────────────────────────────────
+// LIVE PREVIEW (visual feedback only)
+// ──────────────────────────────────────────────
+function livePreview() {
+  // Visual feedback in the right panel — actual rendering happens on Apply
+}
+
+// ──────────────────────────────────────────────
+// EXPORT (Feature 4 — rich modal)
+// ──────────────────────────────────────────────
+function openExport() {
+  if (!STATE.imageUrl) { alert('No image to export yet.'); return; }
+  // Show preview
+  const prev = document.getElementById('exp-preview-img');
+  prev.src = STATE.imageUrl.startsWith('data:') ? STATE.imageUrl : STATE.imageUrl + '?t=' + Date.now();
+  // Pre-fill filename
+  const projName = document.getElementById('projectName') ? document.getElementById('projectName').value : '';
+  document.getElementById('exp-filename').value = projName || 'textora-edited';
+  // Reset format/res selections
+  setExpFmt(STATE.expFmt || 'PNG');
+  setExpRes(STATE.expRes || 'original');
+  document.getElementById('export-modal').style.display = 'flex';
+}
+
+function closeExportModal() {
+  document.getElementById('export-modal').style.display = 'none';
+}
+
+function setExpFmt(fmt) {
+  STATE.expFmt = fmt;
+  ['PNG','JPG','WEBP'].forEach(f => {
+    document.getElementById('efmt-' + f.toLowerCase()).classList.toggle('active', f === fmt);
+  });
+  // Show quality slider only for JPG/WEBP
+  document.getElementById('exp-quality-wrap').style.display = (fmt !== 'PNG') ? 'block' : 'none';
+}
+
+function setExpRes(res) {
+  STATE.expRes = res;
+  ['original','hd','2x','custom'].forEach(r => {
+    document.getElementById('eres-' + r).classList.toggle('active', r === res);
+  });
+  document.getElementById('exp-custom-wh').style.display = (res === 'custom') ? 'flex' : 'none';
+}
+
+async function doExport() {
+  if (!STATE.imageUrl) { alert('No image loaded.'); return; }
+  const fmt = STATE.expFmt || 'PNG';
+  const quality = parseInt(document.getElementById('exp-quality').value) || 95;
+  const res = STATE.expRes || 'original';
+  const filename = document.getElementById('exp-filename').value.trim() || 'textora-edited';
+  const cw = parseInt(document.getElementById('exp-cw').value) || 0;
+  const ch = parseInt(document.getElementById('exp-ch').value) || 0;
+
+  const dlBtn = document.querySelector('.exp-dl-btn');
+  dlBtn.textContent = '⏳ Processing…';
+  dlBtn.disabled = true;
+
+  try {
+    const resp = await fetch('/export', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        image_url: STATE.imageUrl,
+        format: fmt,
+        quality,
+        resolution: res,
+        filename,
+        custom_width: cw,
+        custom_height: ch,
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      const a = document.createElement('a');
+      a.href = data.data_url;
+      a.download = data.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      closeExportModal();
+      showSuccessToast('Image downloaded: ' + data.filename);
+    } else {
+      alert('Export failed: ' + data.error);
+    }
+  } catch(e) {
+    alert('Export error: ' + e.message);
+  } finally {
+    dlBtn.textContent = '⬇ Download Image';
+    dlBtn.disabled = false;
+  }
+}
+
+function copyShareLink() {
+  const url = STATE.imageUrl;
+  if (!url || url.startsWith('data:')) {
+    showSuccessToast('No shareable link yet — export to Cloudinary first');
+    return;
+  }
+  navigator.clipboard.writeText(url).then(() => {
+    showSuccessToast('Link copied to clipboard!');
+  }).catch(() => {
+    prompt('Copy this link:', url);
+  });
+}
+
+// ──────────────────────────────────────────────
+// EDIT COUNTER (Feature 1)
+// ──────────────────────────────────────────────
+function updateEditCounter() {
+  const counter = document.getElementById('edit-counter');
+  const num = document.getElementById('edit-count-num');
+  if (counter && num) {
+    counter.style.display = 'flex';
+    num.textContent = STATE.editCount;
+  }
+}
+
+// ──────────────────────────────────────────────
+// ADD TEXT MODE (Feature 6)
+// ──────────────────────────────────────────────
+function toggleAddTextMode() {
+  STATE.addTextMode = !STATE.addTextMode;
+  const btn = document.getElementById('addTextBtn');
+  if (btn) btn.classList.toggle('active', STATE.addTextMode);
+  renderBBoxes();
+  if (STATE.addTextMode) {
+    showSuccessToast('Click anywhere on the image to place a new text box');
+  }
+}
+
+function placeNewTextRegion(imgX, imgY) {
+  const newRegion = {
+    id: Date.now(),
+    text: 'New Text',
+    x: imgX,
+    y: imgY,
+    width: 200,
+    height: 50,
+    type: 'straight',
+    confidence: 100,
+    detected_color: '#ffffff',
+    _origX: imgX,
+    _origY: imgY,
+  };
+  STATE.regions.push(newRegion);
+  STATE.addTextMode = false;
+  const btn = document.getElementById('addTextBtn');
+  if (btn) btn.classList.remove('active');
+  renderBBoxes();
+  renderLayers();
+  document.getElementById('status-regions').textContent = 'Regions: ' + STATE.regions.length;
+  selectRegion(STATE.regions.length - 1);
+  document.getElementById('rp-text').value = '';
+  document.getElementById('rp-text').focus();
+}
+
+// ──────────────────────────────────────────────
+// RE-SCAN CURRENT IMAGE (Feature 1)
+// ──────────────────────────────────────────────
+async function rescanCurrentImage() {
+  if (!STATE.imageUrl) return;
+  showProc('Re-scanning…', 'Detecting text in current image…');
+  try {
+    // Always send base64 so the route works whether currentImageUrl is
+    // a Cloudinary HTTPS URL or a data: URL produced by a previous edit.
+    let imageData = STATE.imageUrl;
+    if (!imageData.startsWith('data:')) {
+      // Cloudinary URL — draw the displayed <img> onto a canvas to get base64
+      const imgEl = document.getElementById('main-img');
+      const canvas = document.createElement('canvas');
+      canvas.width  = imgEl.naturalWidth  || STATE.origW;
+      canvas.height = imgEl.naturalHeight || STATE.origH;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imgEl, 0, 0);
+      imageData = canvas.toDataURL('image/png');
+    }
+
+    const resp = await fetch('/rescan', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ image_data: imageData })
+    });
+    const data = await resp.json();
+    hideProc();
+    if (!data.success) {
+      showScanError(data.error || 'Unknown error', () => rescanCurrentImage());
+      return;
+    }
+
+    STATE.regions = data.text_regions || [];
+    STATE.regions.forEach(r => { r._origX = r.x; r._origY = r.y; r._origW = r.width; r._origH = r.height; });
+    STATE.selectedIdx = -1;
+    STATE.origW = data.original_width || STATE.origW;
+    STATE.origH = data.original_height || STATE.origH;
+
+    // If Cloudinary gave us a permanent URL, update STATE (keeps undo history stable)
+    if (data.image_url) {
+      STATE.imageUrl = data.image_url;
+      STATE.cleanImageUrl = data.image_url;
+      STATE.originalImageUrl = data.image_url;  // new clean base after rescan
+      STATE.editStack = [];                      // clear stack — starting fresh
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(() => renderBBoxes()));
+    renderLayers();
+    document.getElementById('status-regions').textContent = 'Regions: ' + STATE.regions.length;
+    document.getElementById('rp-empty').style.display = 'flex';
+    document.getElementById('rp-editor').style.display = 'none';
+    showSuccessToast('Re-scan complete — ' + STATE.regions.length + ' region(s) found');
+  } catch(e) {
+    hideProc();
+    alert('Re-scan failed: ' + e.message);
+    console.error('[RESCAN]', e);
+  }
+}
+
+// ──────────────────────────────────────────────
+// POSITION CONTROLS (Feature 5)
+// ──────────────────────────────────────────────
+function onPosInput(axis, val) {
+  if (STATE.selectedIdx < 0) return;
+  const r = STATE.regions[STATE.selectedIdx];
+  const n = parseInt(val) || 0;
+  if (axis === 'x') r.x = Math.max(0, n);
+  else              r.y = Math.max(0, n);
+  document.getElementById('rp-sub').textContent = `${r.width}×${r.height}px at (${r.x}, ${r.y})`;
+  requestAnimationFrame(() => renderBBoxes());
+}
+
+function nudgeRegion(dx, dy, amount) {
+  if (STATE.selectedIdx < 0) return;
+  const r = STATE.regions[STATE.selectedIdx];
+  const step = amount || 1;
+  r.x = Math.max(0, r.x + dx * step);
+  r.y = Math.max(0, r.y + dy * step);
+  document.getElementById('pos-x').value = r.x;
+  document.getElementById('pos-y').value = r.y;
+  document.getElementById('rp-sub').textContent = `${r.width}×${r.height}px at (${r.x}, ${r.y})`;
+  requestAnimationFrame(() => renderBBoxes());
+}
+
+function resetRegionPos() {
+  if (STATE.selectedIdx < 0) return;
+  const r = STATE.regions[STATE.selectedIdx];
+  if (r._origX !== undefined) { r.x = r._origX; r.y = r._origY; }
+  document.getElementById('pos-x').value = r.x;
+  document.getElementById('pos-y').value = r.y;
+  document.getElementById('rp-sub').textContent = `${r.width}×${r.height}px at (${r.x}, ${r.y})`;
+  requestAnimationFrame(() => renderBBoxes());
+}
+
+// ──────────────────────────────────────────────
+// PROCESSING OVERLAY
+// ──────────────────────────────────────────────
+function showProc(title, step) {
+  document.getElementById('proc-title').textContent = title;
+  document.getElementById('proc-step').textContent = step;
+  document.getElementById('proc-overlay').style.display = 'flex';
+}
+function hideProc() {
+  document.getElementById('proc-overlay').style.display = 'none';
+}
+
+// ──────────────────────────────────────────────
+// HELP MODAL
+// ──────────────────────────────────────────────
+function openHelp() {
+  document.getElementById('help-modal').style.display = 'flex';
+}
+
+// ──────────────────────────────────────────────
+// SAVE INDICATOR
+// ──────────────────────────────────────────────
+let saveTimer = null;
+function showSaveIndicator(state) {
+  const ind = document.getElementById('saveIndicator');
+  const dot = document.getElementById('saveDot');
+  const txt = document.getElementById('saveText');
+  if (!ind) return;
+  ind.style.display = 'flex';
+  if (state === 'saved') {
+    dot.style.background = '#3EFFA8'; txt.textContent = 'Saved just now';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { txt.textContent = 'Saved'; }, 3000);
+  } else if (state === 'error') {
+    dot.style.background = '#FF4444'; txt.textContent = 'Save failed';
+  }
+}
+
+function updateGuestExports(n) {
+  const el = document.getElementById('guest-exports-left');
+  if (el) el.textContent = `(${n} export${n!==1?'s':''} remaining)`;
+}
+
+// ──────────────────────────────────────────────
+// RESET & CLEAR
+// ──────────────────────────────────────────────
+function resetToOriginal() {
+  if (!STATE.originalUrl) return;
+  STATE.imageUrl = STATE.originalUrl;
+  STATE.cleanImageUrl = STATE.originalUrl;
+  STATE.editStack = [];   // clear all edits — back to original
+  document.getElementById('main-img').src = STATE.originalUrl + '?t=' + Date.now();
+  pushHistory(STATE.originalUrl);
+  STATE.selectedIdx = -1;
+  document.getElementById('rp-empty').style.display='flex';
+  document.getElementById('rp-editor').style.display='none';
+}
+
+function clearCanvas() {
+  if (!confirm('Clear the canvas and start over?')) return;
+  STATE.imageUrl = ''; STATE.originalUrl = ''; STATE.regions = [];
+  STATE.originalImageUrl = null; STATE.editStack = [];
+  STATE.history = []; STATE.historyIdx = -1; STATE.selectedIdx = -1;
+  STATE.editCount = 0; STATE.addTextMode = false;
+  document.getElementById('main-img').src = '';
+  document.getElementById('img-container').style.display = 'none';
+  document.getElementById('upload-placeholder').style.display = 'flex';
+  document.getElementById('layers-list').innerHTML = '';
+  document.getElementById('bbox-svg').innerHTML = '';
+  document.getElementById('scanBtn').disabled = true;
+  document.getElementById('rp-empty').style.display='flex';
+  document.getElementById('rp-editor').style.display='none';
+  document.getElementById('status-regions').textContent = 'Regions: 0';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('edit-counter').style.display = 'none';
+  document.getElementById('edit-count-num').textContent = '0';
+  const addBtn = document.getElementById('addTextBtn');
+  const rsBtn  = document.getElementById('rescanBtn');
+  if (addBtn) addBtn.style.display = 'none';
+  if (rsBtn)  rsBtn.style.display  = 'none';
+}
+
+// ──────────────────────────────────────────────
+// USER MENU
+// ──────────────────────────────────────────────
+function toggleUserMenu() {
+  document.getElementById('userMenu').classList.toggle('open');
+}
+function toggleGuestMenu() {
+  document.getElementById('guestMenu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#userAvatar') && !e.target.closest('#userMenu')) {
+    const m = document.getElementById('userMenu');
+    if (m) m.classList.remove('open');
+  }
+  if (!e.target.closest('#guestBadge') && !e.target.closest('#guestMenu')) {
+    const m = document.getElementById('guestMenu');
+    if (m) m.classList.remove('open');
+  }
+});
+
+// ──────────────────────────────────────────────
+// KEYBOARD SHORTCUTS
+// ──────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName.toLowerCase();
+  const inInput = ['input','textarea','select'].includes(tag);
+  const ctrl = e.ctrlKey || e.metaKey;
+
+  if (ctrl && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoHistory(); return; }
+  if (ctrl && e.key === 'z' && e.shiftKey) { e.preventDefault(); redoHistory(); return; }
+  if (ctrl && e.key === 'y') { e.preventDefault(); redoHistory(); return; }
+  if (ctrl && e.key === 'g') { e.preventDefault(); toggleGrid(); return; }
+  if (ctrl && e.key === 'r') { e.preventDefault(); toggleRuler(); return; }
+  if (ctrl && e.key === ';') { e.preventDefault(); toggleGuides(); return; }
+  if (ctrl && e.key === '=') { e.preventDefault(); zoomBy(0.2); return; }
+  if (ctrl && e.key === '-') { e.preventDefault(); zoomBy(-0.2); return; }
+  if (ctrl && e.key === '0') { e.preventDefault(); fitToScreen(); return; }
+  if (ctrl && e.key === 'e') { e.preventDefault(); openExport(); return; }
+  if (ctrl && e.key === 'a' && !inInput) { e.preventDefault();
+    if (STATE.regions.length) selectRegion(0); return; }
+  if (ctrl && e.key === 'b' && !inInput) { e.preventDefault(); toggleFormat('bold'); return; }
+  if (ctrl && e.key === 'i' && !inInput) { e.preventDefault(); toggleFormat('italic'); return; }
+  if (ctrl && e.key === 'u' && !inInput) { e.preventDefault(); toggleFormat('underline'); return; }
+
+  if (!inInput) {
+    if (e.key === 'v' || e.key === 'V') { setTool('select'); return; }
+    if (e.key === 'h' || e.key === 'H') { setTool('pan'); return; }
+    if (e.key === 's' || e.key === 'S') { triggerScan(); return; }
+    if (e.key === 'e' || e.key === 'E') { setTool('eyedrop'); return; }
+    if (e.key === 'i' || e.key === 'I') { setTool('eraser'); return; }
+    if (e.key === 'l' || e.key === 'L') { setTool('lasso'); return; }
+    if (e.key === '?') { openHelp(); return; }
+    if (e.key === 'Escape') {
+      STATE.selectedIdx = -1;
+      STATE.addTextMode = false;
+      const addBtn = document.getElementById('addTextBtn');
+      if (addBtn) addBtn.classList.remove('active');
+      document.getElementById('rp-empty').style.display='flex';
+      document.getElementById('rp-editor').style.display='none';
+      document.getElementById('help-modal').style.display='none';
+      document.getElementById('export-modal').style.display='none';
+      document.querySelectorAll('.bbox-rect').forEach(el => { el.style.strokeWidth='2'; el.style.fillOpacity='0.08'; });
+      renderBBoxes();
+      return;
+    }
+    // Arrow keys: nudge selected region (1px; Shift = 10px)
+    if (STATE.selectedIdx >= 0 && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 1;
+      if (e.key === 'ArrowLeft')  nudgeRegion(-1,  0, step);
+      if (e.key === 'ArrowRight') nudgeRegion( 1,  0, step);
+      if (e.key === 'ArrowUp')    nudgeRegion( 0, -1, step);
+      if (e.key === 'ArrowDown')  nudgeRegion( 0,  1, step);
+      return;
+    }
+    if (e.key === 'Enter' && STATE.selectedIdx >= 0) { e.preventDefault(); applyChanges(); return; }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && STATE.selectedIdx >= 0) { removeTextOnly(); return; }
+  }
+});
+
+// ──────────────────────────────────────────────
+// MOUSE COORDS IN STATUS BAR
+// ──────────────────────────────────────────────
+document.getElementById('canvas-wrap').addEventListener('mousemove', e => {
+  const wrap = document.getElementById('canvas-wrap');
+  const container = document.getElementById('img-container');
+  if (!container || container.style.display === 'none') return;
+  const rect = container.getBoundingClientRect();
+  const mx = Math.round((e.clientX - rect.left) / STATE.zoom);
+  const my = Math.round((e.clientY - rect.top) / STATE.zoom);
+  document.getElementById('status-coords').textContent = `x: ${mx}, y: ${my}`;
+});
+
+// ──────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────
+updateHistoryBtns();
+{% if is_guest %}
+updateGuestExports(3);
+{% endif %}
+</script>
+</body>
+</html>

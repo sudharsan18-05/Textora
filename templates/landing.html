@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Textora — AI Image Text Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0D0F;--brand:#FF5C3A;--text:#F2F2F4;--muted:#A0A0B0;
+  --border:#2E2E3A;--panel1:#141418;--panel2:#1C1C22;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;height:60px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px;z-index:100;gap:20px}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;display:flex;align-items:center;gap:6px}
+.logo-dot{width:8px;height:8px;background:var(--brand);border-radius:50%}
+.nav-links{display:flex;gap:28px;margin:0 auto}
+.nav-links a{font-size:14px;color:var(--muted);transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-right{display:flex;gap:10px;align-items:center}
+.btn-outline{padding:7px 18px;border-radius:8px;font-size:13px;font-weight:500;background:transparent;color:var(--text);border:1px solid var(--border);transition:all .2s}
+.btn-outline:hover{border-color:var(--brand);color:var(--brand)}
+.btn-brand{padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;background:var(--brand);color:#fff;transition:all .2s}
+.btn-brand:hover{background:#ff7b60}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{width:22px;height:2px;background:var(--text);border-radius:2px;display:block;transition:all .3s}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 40px 60px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(255,92,58,.12) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,92,58,.15);color:var(--brand);border:1px solid rgba(255,92,58,.3);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;margin-bottom:28px}
+.hero-badge-dot{width:6px;height:6px;background:var(--brand);border-radius:50%;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(40px,7vw,80px);font-weight:800;line-height:1.1;margin-bottom:20px;max-width:900px}
+.hero h1 span{color:var(--brand)}
+.hero p{font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:560px;line-height:1.7;margin-bottom:36px}
+.hero-btns{display:flex;gap:14px;align-items:center;margin-bottom:32px;flex-wrap:wrap;justify-content:center}
+.hero-btns .btn-brand{padding:14px 32px;font-size:15px;border-radius:12px}
+.hero-btns .btn-outline{padding:13px 28px;font-size:15px;border-radius:12px;display:flex;align-items:center;gap:8px}
+.play-icon{width:18px;height:18px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px}
+.trust-badges{display:flex;gap:24px;margin-bottom:48px;flex-wrap:wrap;justify-content:center}
+.trust-badge{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.trust-badge svg{color:#3EFFA8;flex-shrink:0}
+.editor-mockup{width:100%;max-width:900px;aspect-ratio:16/9;background:var(--panel1);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6),0 0 0 1px rgba(255,92,58,.1);position:relative}
+.mockup-topbar{height:40px;background:var(--panel2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.mockup-dot{width:10px;height:10px;border-radius:50%}
+.mockup-title{font-size:13px;font-weight:600;margin:0 auto}
+.mockup-body{display:flex;height:calc(100% - 40px)}
+.mockup-sidebar{width:50px;background:var(--panel1);border-right:1px solid var(--border)}
+.mockup-canvas{flex:1;background:#1a1a24;display:flex;align-items:center;justify-content:center;position:relative}
+.mockup-img-placeholder{width:70%;height:70%;background:linear-gradient(135deg,#2a2a38,#1e1e2c);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:40px;position:relative}
+.mockup-box{position:absolute;border:2px solid;border-radius:3px}
+.mockup-panel{width:200px;background:var(--panel1);border-left:1px solid var(--border)}
+
+/* FEATURES */
+section{padding:100px 40px}
+.section-label{font-size:13px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;text-align:center}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,48px);font-weight:700;text-align:center;margin-bottom:16px}
+.section-sub{font-size:16px;color:var(--muted);text-align:center;max-width:520px;margin:0 auto 60px;line-height:1.7}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto}
+.feat-card{background:var(--panel1);border:1px solid var(--border);border-radius:16px;padding:28px;transition:all .3s}
+.feat-card:hover{border-color:rgba(255,92,58,.4);transform:translateY(-2px)}
+.feat-icon{width:48px;height:48px;background:rgba(255,92,58,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.feat-card h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px}
+.feat-card p{font-size:14px;color:var(--muted);line-height:1.7}
+
+/* HOW IT WORKS */
+#how-it-works{background:var(--panel1)}
+.steps{display:flex;gap:0;max-width:1100px;margin:0 auto;position:relative}
+.steps::before{content:'';position:absolute;top:32px;left:10%;right:10%;height:2px;background:repeating-linear-gradient(90deg,var(--brand) 0,var(--brand) 8px,transparent 8px,transparent 16px);z-index:0}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 20px;position:relative;z-index:1}
+.step-num{width:64px;height:64px;background:var(--bg);border:2px solid var(--brand);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--brand);margin-bottom:20px;flex-shrink:0}
+.step h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px}
+.step p{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* PRICING */
+.pricing-toggle{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:48px}
+.toggle-label{font-size:14px;font-weight:500}
+.toggle-switch{position:relative;width:44px;height:24px;cursor:pointer}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:100px;transition:.3s}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s}
+.toggle-switch input:checked ~ .toggle-track{background:var(--brand)}
+.toggle-switch input:checked ~ .toggle-thumb{left:23px}
+.discount-badge{background:rgba(255,92,58,.15);color:var(--brand);border-radius:100px;padding:3px 10px;font-size:12px;font-weight:600}
+.pricing-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto 80px}
+.price-card{background:var(--panel1);border:1px solid var(--border);border-radius:20px;padding:32px;position:relative;transition:all .3s}
+.price-card.popular{border-color:var(--brand);box-shadow:0 8px 40px rgba(255,92,58,.2);transform:scale(1.02)}
+.popular-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--brand);color:#fff;padding:4px 14px;border-radius:100px;font-size:12px;font-weight:700;white-space:nowrap}
+.price-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px}
+.price-amount{display:flex;align-items:baseline;gap:4px;margin:20px 0}
+.price-dollar{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;line-height:1}
+.price-period{font-size:14px;color:var(--muted)}
+.price-original{text-decoration:line-through;color:var(--muted);font-size:18px;margin-left:8px;display:none}
+.price-features{list-style:none;margin-bottom:28px}
+.price-features li{display:flex;align-items:center;gap:10px;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border)}
+.price-features li:last-child{border-bottom:none}
+.check-icon{color:#3EFFA8;flex-shrink:0;font-size:16px}
+.cross-icon{color:var(--muted);flex-shrink:0}
+.price-btn{width:100%;padding:13px;border-radius:12px;font-size:14px;font-weight:600;transition:all .2s}
+.price-btn.primary{background:var(--brand);color:#fff}
+.price-btn.primary:hover{background:#ff7b60}
+.price-btn.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+.price-btn.secondary:hover{border-color:var(--brand);color:var(--brand)}
+
+/* FAQ */
+.faq{max-width:700px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-q{width:100%;text-align:left;background:none;color:var(--text);font-size:15px;font-weight:600;padding:20px 0;display:flex;justify-content:space-between;align-items:center;gap:16px;cursor:pointer;transition:color .2s}
+.faq-q:hover{color:var(--brand)}
+.faq-icon{font-size:20px;transition:transform .3s;flex-shrink:0;color:var(--muted)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.faq-a p{font-size:14px;color:var(--muted);line-height:1.7;padding-bottom:16px}
+.faq-item.open .faq-icon{transform:rotate(45deg);color:var(--brand)}
+.faq-item.open .faq-a{max-height:200px}
+
+/* FOOTER */
+footer{background:var(--panel1);border-top:1px solid var(--border);padding:48px 40px 24px}
+.footer-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:48px;gap:40px;flex-wrap:wrap}
+.footer-brand{max-width:260px}
+.footer-brand p{font-size:14px;color:var(--muted);margin-top:12px;line-height:1.6}
+.footer-links h4{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:16px}
+.footer-links ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer-links a{font-size:14px;color:var(--muted);transition:color .2s}
+.footer-links a:hover{color:var(--text)}
+.footer-bottom{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:13px;color:var(--muted)}
+.social-links{display:flex;gap:12px}
+.social-link{width:36px;height:36px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted);transition:all .2s}
+.social-link:hover{border-color:var(--brand);color:var(--brand)}
+
+@media(max-width:768px){
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .nav-links.open{display:flex;flex-direction:column;position:fixed;top:60px;left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);padding:20px;gap:16px;z-index:99}
+  .hamburger{display:flex}
+  .hero{padding:100px 20px 60px}
+  .hero-btns{flex-direction:column;align-items:stretch}
+  .trust-badges{flex-direction:column;align-items:center}
+  section{padding:60px 20px}
+  .features-grid{grid-template-columns:1fr}
+  .steps{flex-direction:column;gap:32px}
+  .steps::before{display:none}
+  .pricing-cards{grid-template-columns:1fr}
+  .price-card.popular{transform:none}
+  footer{padding:40px 20px 20px}
+  .footer-top{flex-direction:column}
+  .footer-bottom{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-dot"></div>
+    Textora
+  </div>
+  <div class="nav-links" id="navLinks">
+    <a href="#features">Features</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#footer">About</a>
+  </div>
+  <div class="nav-right">
+    <a href="/login"><button class="btn-outline">Login</button></a>
+    <a href="/signup"><button class="btn-brand">Get Started</button></a>
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge"><span class="hero-badge-dot"></span>AI-Powered Image Editor</div>
+  <h1>Edit Any Text In Any Image — <span>Instantly</span></h1>
+  <p>Upload any image. Click any text. Change it. AI handles the rest.</p>
+  <div class="hero-btns">
+    <a href="/signup"><button class="btn-brand">Get Started Free</button></a>
+    <a href="/editor"><button class="btn-outline"><span class="play-icon">▶</span>Try the Editor</button></a>
+  </div>
+  <div class="trust-badges">
+    <div class="trust-badge">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="currentColor" fill-opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      No card required
+    </div>
+    <div class="trust-badge">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="currentColor" fill-opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      5 free exports monthly
+    </div>
+    <div class="trust-badge">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="currentColor" fill-opacity=".15"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Cancel anytime
+    </div>
+  </div>
+  <div class="editor-mockup">
+    <div class="mockup-topbar">
+      <div class="mockup-dot" style="background:#FF5F57"></div>
+      <div class="mockup-dot" style="background:#FFBD2E"></div>
+      <div class="mockup-dot" style="background:#28CA41"></div>
+      <div class="mockup-title">Textora — AI Image Text Editor</div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar"></div>
+      <div class="mockup-canvas">
+        <div class="mockup-img-placeholder">
+          🖼️
+          <div class="mockup-box" style="top:20%;left:15%;width:40%;height:18%;border-color:#FF5C3A;background:rgba(255,92,58,.08)"></div>
+          <div class="mockup-box" style="top:50%;left:25%;width:30%;height:14%;border-color:#3EFFA8;background:rgba(62,255,168,.08)"></div>
+          <div class="mockup-box" style="top:72%;left:10%;width:50%;height:14%;border-color:#F59E0B;background:rgba(245,158,11,.08)"></div>
+        </div>
+      </div>
+      <div class="mockup-panel"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-label">Features</div>
+  <h2 class="section-title">Everything You Need to Edit Image Text</h2>
+  <p class="section-sub">Powerful AI tools for text detection, editing, and rendering — all in one place.</p>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">🔍</div>
+      <h3>Smart Text Detection</h3>
+      <p>AI automatically finds every text in your image including curved, rotated, and hidden text with high accuracy.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎬</div>
+      <h3>Video Text Editing</h3>
+      <p>Edit text across video frames automatically. Change subtitles, watermarks, and titles in minutes.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔤</div>
+      <h3>Curved & Rotated Text</h3>
+      <p>Detect and edit text that follows circular paths, badge stamps, logos, and angled designs.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎨</div>
+      <h3>Full Style Control</h3>
+      <p>Change font size, weight, color, shadow, outline, gradient, and more for every text region.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">↩️</div>
+      <h3>Undo & History</h3>
+      <p>Every change is saved in history. Jump back to any previous state at any time.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">⬇️</div>
+      <h3>Export Any Format</h3>
+      <p>Download your edited image in PNG, JPG, or WEBP in original quality or HD.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="section-label">Process</div>
+  <h2 class="section-title">How Textora Works</h2>
+  <p class="section-sub">Four simple steps to edit any text in any image.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Upload Your Image</h3>
+      <p>Drag and drop or click to upload any JPG, PNG, or WEBP image.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>AI Detects All Text</h3>
+      <p>Our AI scans your image and draws boxes around every text region automatically.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Edit & Restyle</h3>
+      <p>Click any text box. Change the words, font, size, color, and style in the right panel.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <h3>Export Your Result</h3>
+      <p>Download your edited image with the new text baked directly into the pixels.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" style="background:var(--bg)">
+  <div class="section-label">Pricing</div>
+  <h2 class="section-title">Simple, Transparent Pricing</h2>
+  <p class="section-sub">Start free. Upgrade when you need more.</p>
+  <div class="pricing-toggle">
+    <span class="toggle-label">Monthly</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="billingToggle" onchange="toggleBilling(this.checked)"/>
+      <div class="toggle-track"></div>
+      <div class="toggle-thumb"></div>
+    </label>
+    <span class="toggle-label">Annual</span>
+    <span class="discount-badge">Save 20%</span>
+  </div>
+  <div class="pricing-cards">
+    <div class="price-card">
+      <div class="price-name">Free</div>
+      <div class="price-amount">
+        <span class="price-dollar">$0</span>
+        <span class="price-period">/month</span>
+      </div>
+      <ul class="price-features">
+        <li><span class="check-icon">✓</span>5 image exports per month</li>
+        <li><span class="check-icon">✓</span>Basic text detection</li>
+        <li><span class="check-icon">✓</span>Standard fonts</li>
+        <li><span class="cross-icon">✗</span><span style="color:var(--muted)">Watermark on output</span></li>
+        <li><span class="cross-icon">✗</span><span style="color:var(--muted)">No video support</span></li>
+      </ul>
+      <a href="/signup"><button class="price-btn secondary">Get Started Free</button></a>
+    </div>
+    <div class="price-card popular">
+      <div class="popular-badge">⭐ Most Popular</div>
+      <div class="price-name">Pro</div>
+      <div class="price-amount">
+        <span class="price-dollar" id="proPriceAmt">$19</span>
+        <span class="price-original" id="proPriceOld">$19</span>
+        <span class="price-period">/month</span>
+      </div>
+      <ul class="price-features">
+        <li><span class="check-icon">✓</span>Unlimited image exports</li>
+        <li><span class="check-icon">✓</span>Advanced text detection</li>
+        <li><span class="check-icon">✓</span>All Google Fonts</li>
+        <li><span class="check-icon">✓</span>No watermark</li>
+        <li><span class="check-icon">✓</span>HD export</li>
+        <li><span class="check-icon">✓</span>Video up to 2 minutes</li>
+        <li><span class="check-icon">✓</span>Priority processing</li>
+        <li><span class="check-icon">✓</span>Email support</li>
+      </ul>
+      <a href="/signup"><button class="price-btn primary">Start Pro Trial</button></a>
+    </div>
+    <div class="price-card">
+      <div class="price-name">Business</div>
+      <div class="price-amount">
+        <span class="price-dollar" id="bizPriceAmt">$49</span>
+        <span class="price-original" id="bizPriceOld">$49</span>
+        <span class="price-period">/month</span>
+      </div>
+      <ul class="price-features">
+        <li><span class="check-icon">✓</span>Everything in Pro</li>
+        <li><span class="check-icon">✓</span>API access</li>
+        <li><span class="check-icon">✓</span>5 team seats</li>
+        <li><span class="check-icon">✓</span>Custom font upload</li>
+        <li><span class="check-icon">✓</span>Video up to 10 minutes</li>
+        <li><span class="check-icon">✓</span>Dedicated support</li>
+        <li><span class="check-icon">✓</span>White label option</li>
+      </ul>
+      <a href="/signup"><button class="price-btn secondary">Contact Sales</button></a>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div style="text-align:center;margin-bottom:40px">
+    <h3 style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;margin-bottom:8px">Frequently Asked Questions</h3>
+  </div>
+  <div class="faq">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Is my card charged immediately?<span class="faq-icon">+</span></button>
+      <div class="faq-a"><p>No. The free plan requires no credit card. Paid plans are billed at the start of each billing period, and you can cancel anytime before renewal.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Can I cancel anytime?<span class="faq-icon">+</span></button>
+      <div class="faq-a"><p>Yes. You can cancel your subscription at any time from your settings. Your plan stays active until the end of the current billing period.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">What image formats are supported?<span class="faq-icon">+</span></button>
+      <div class="faq-a"><p>Textora supports JPG, PNG, and WEBP image formats. Maximum file size is 20MB. Images are automatically optimized for processing.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">How does the AI inpainting work?<span class="faq-icon">+</span></button>
+      <div class="faq-a"><p>When you apply changes, our AI first erases the old text from the image by analyzing the surrounding pixels and reconstructing the background. Then it renders your new text in the same position.</p></div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Is my image data private?<span class="faq-icon">+</span></button>
+      <div class="faq-a"><p>Yes. Your images are processed securely and stored privately. We never share your images or use them for training. You can delete all stored images from your account settings anytime.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="nav-logo" style="margin-bottom:12px"><div class="logo-dot"></div>Textora</div>
+      <p>AI-powered image text editor. Edit any text in any image, instantly.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Product</h4>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="/editor">Try the Editor</a></li>
+      </ul>
+    </div>
+    <div class="footer-links">
+      <h4>Account</h4>
+      <ul>
+        <li><a href="/signup">Sign Up</a></li>
+        <li><a href="/login">Log In</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+      </ul>
+    </div>
+    <div class="footer-links">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Cookie Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2026 Textora. All rights reserved.</p>
+    <div class="social-links">
+      <a href="#" class="social-link">𝕏</a>
+      <a href="#" class="social-link">in</a>
+      <a href="#" class="social-link">▶</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('hamburger').addEventListener('click', function(){
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+function toggleBilling(annual){
+  const proAmt = document.getElementById('proPriceAmt');
+  const proOld = document.getElementById('proPriceOld');
+  const bizAmt = document.getElementById('bizPriceAmt');
+  const bizOld = document.getElementById('bizPriceOld');
+  if(annual){
+    proAmt.textContent='$15'; proOld.textContent='$19'; proOld.style.display='inline';
+    bizAmt.textContent='$39'; bizOld.textContent='$49'; bizOld.style.display='inline';
+  } else {
+    proAmt.textContent='$19'; proOld.style.display='none';
+    bizAmt.textContent='$49'; bizOld.style.display='none';
+  }
+}
+
+function toggleFaq(btn){
+  const item = btn.closest('.faq-item');
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+  if(!wasOpen) item.classList.add('open');
+}
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const el = document.querySelector(a.getAttribute('href'));
+    if(el) el.scrollIntoView({behavior:'smooth'});
+    document.getElementById('navLinks').classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

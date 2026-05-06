@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sign Up — Textora</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0D0D0F;--brand:#FF5C3A;--text:#F2F2F4;--muted:#A0A0B0;--border:#2E2E3A;--panel1:#141418;--panel2:#1C1C22;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+a{color:var(--brand);text-decoration:none}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none}
+input{font-family:'DM Sans',sans-serif;width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:14px;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--brand)}
+input.error{border-color:#FF4444}
+.card{width:440px;max-width:100%;background:var(--panel1);border:1px solid var(--border);border-radius:20px;padding:40px}
+.logo{font-family:'Syne',sans-serif;font-weight:700;font-size:22px;display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:28px}
+.logo-dot{width:8px;height:8px;background:var(--brand);border-radius:50%}
+.card-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;text-align:center;margin-bottom:6px}
+.card-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:28px}
+.guest-btn{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;color:var(--text);font-size:14px;font-weight:500;transition:all .2s;margin-bottom:6px;text-align:left;cursor:pointer}
+.guest-btn:hover{border-color:var(--muted)}
+.guest-icon{width:36px;height:36px;background:var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.guest-note{font-size:11px;color:var(--muted)}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted);font-size:12px;font-weight:500}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.google-btn{width:100%;background:#fff;border:none;border-radius:12px;padding:13px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:600;color:#1a1a1a;transition:all .2s;margin-bottom:20px;cursor:pointer}
+.google-btn:hover{background:#f5f5f5}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--muted)}
+.input-wrap{position:relative}
+.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--muted);pointer-events:none}
+.input-wrap input{padding-left:42px}
+.pw-wrap input{padding-right:42px}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;padding:4px}
+.strength-bar{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.strength-fill{height:100%;border-radius:2px;transition:all .3s;width:0}
+.strength-text{font-size:11px;margin-top:4px;color:var(--muted)}
+.pw-match-err{font-size:11px;color:#FF4444;margin-top:4px;display:none}
+.agree-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;font-size:13px;color:var(--muted);cursor:pointer}
+.agree-row input{width:auto;flex-shrink:0;margin-top:2px;accent-color:var(--brand)}
+.btn-submit{width:100%;background:var(--brand);color:#fff;border-radius:12px;padding:14px;font-size:15px;font-weight:700;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.btn-submit:hover:not(:disabled){background:#ff7b60}
+.btn-submit:disabled{opacity:.7;cursor:not-allowed}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-msg{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#ff6b6b;margin-bottom:16px;display:none;align-items:center;gap:8px}
+.bottom-link{text-align:center;font-size:13px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo"><div class="logo-dot"></div>Textora</div>
+  <div class="card-title">Create Your Account</div>
+  <div class="card-sub">Start editing images for free</div>
+
+  <div class="error-msg" id="signupError"></div>
+
+  <form action="/guest" method="POST">
+    <button type="submit" class="guest-btn">
+      <div class="guest-icon">👤</div>
+      <div>
+        <div>Continue as Guest</div>
+        <div class="guest-note">No account needed. Limited to 3 exports. No save.</div>
+      </div>
+    </button>
+  </form>
+
+  <div class="divider">OR</div>
+
+  <button class="google-btn" onclick="alert('Google OAuth coming soon. Please use email/password.')">
+    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Continue with Google
+  </button>
+
+  <div class="divider">OR</div>
+
+  <form id="signupForm" novalidate>
+    <div class="field">
+      <label for="fullName">Full Name</label>
+      <div class="input-wrap">
+        <span class="input-icon">👤</span>
+        <input type="text" id="fullName" name="full_name" placeholder="Your full name" required autocomplete="name"/>
+      </div>
+    </div>
+    <div class="field">
+      <label for="email">Email Address</label>
+      <div class="input-wrap">
+        <span class="input-icon">✉</span>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email"/>
+      </div>
+    </div>
+    <div class="field">
+      <label for="password">Create Password</label>
+      <div class="input-wrap pw-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" id="password" name="password" placeholder="Create a password" required autocomplete="new-password" oninput="checkStrength(this.value)"/>
+        <button type="button" class="eye-btn" onclick="togglePw('password')">👁</button>
+      </div>
+      <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+      <div class="strength-text" id="strengthText"></div>
+    </div>
+    <div class="field">
+      <label for="confirmPassword">Confirm Password</label>
+      <div class="input-wrap pw-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" id="confirmPassword" name="confirm_password" placeholder="Repeat your password" required autocomplete="new-password" oninput="checkMatch()"/>
+        <button type="button" class="eye-btn" onclick="togglePw('confirmPassword')">👁</button>
+      </div>
+      <div class="pw-match-err" id="matchErr">Passwords do not match</div>
+    </div>
+    <label class="agree-row">
+      <input type="checkbox" id="agree" name="agree"/>
+      I agree to the <a href="#">Terms of Service</a>&nbsp;and&nbsp;<a href="#">Privacy Policy</a>
+    </label>
+    <button type="submit" class="btn-submit" id="signupBtn">
+      <div class="spinner" id="signupSpinner"></div>
+      Create Account
+    </button>
+  </form>
+
+  <div class="bottom-link">Already have an account? <a href="/login">Sign In</a></div>
+</div>
+
+<script>
+function togglePw(id){const el=document.getElementById(id);el.type=el.type==='password'?'text':'password'}
+
+function checkStrength(v){
+  const fill=document.getElementById('strengthFill');
+  const txt=document.getElementById('strengthText');
+  let score=0;
+  if(v.length>=6)score++;
+  if(v.length>=8)score++;
+  if(/[0-9]/.test(v)||/[^a-zA-Z0-9]/.test(v))score++;
+  if(/[A-Z]/.test(v)&&/[0-9]/.test(v)&&/[^a-zA-Z0-9]/.test(v)&&v.length>=8)score=4;
+  const levels=[
+    {w:'0%',color:'transparent',label:''},
+    {w:'33%',color:'#FF4444',label:'Weak'},
+    {w:'66%',color:'#F59E0B',label:'Medium'},
+    {w:'100%',color:'#3EFFA8',label:'Strong'},
+    {w:'100%',color:'#3EFFA8',label:'Strong'},
+  ];
+  const l=levels[Math.min(score,4)];
+  fill.style.width=l.w;fill.style.background=l.color;
+  txt.textContent=l.label;txt.style.color=l.color;
+}
+
+function checkMatch(){
+  const pw=document.getElementById('password').value;
+  const pw2=document.getElementById('confirmPassword').value;
+  const err=document.getElementById('matchErr');
+  if(pw2&&pw!==pw2){err.style.display='block';document.getElementById('confirmPassword').classList.add('error');}
+  else{err.style.display='none';document.getElementById('confirmPassword').classList.remove('error');}
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  const form=document.getElementById('signupForm');
+  const signupBtn=document.getElementById('signupBtn');
+  const errorDiv=document.getElementById('signupError');
+  const spinner=document.getElementById('signupSpinner');
+
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    errorDiv.style.display='none';
+    errorDiv.textContent='';
+
+    const full_name=document.getElementById('fullName').value.trim();
+    const email=document.getElementById('email').value.trim();
+    const password=document.getElementById('password').value.trim();
+    const confirmPassword=document.getElementById('confirmPassword').value.trim();
+    const agree=document.getElementById('agree').checked;
+
+    if(!full_name||!email||!password||!confirmPassword){
+      errorDiv.textContent='All fields are required.';
+      errorDiv.style.display='flex';
+      return;
+    }
+    if(password!==confirmPassword){
+      errorDiv.textContent='Passwords do not match.';
+      errorDiv.style.display='flex';
+      return;
+    }
+    if(!agree){
+      errorDiv.textContent='You must agree to the Terms of Service.';
+      errorDiv.style.display='flex';
+      return;
+    }
+
+    signupBtn.disabled=true;
+    spinner.style.display='block';
+    signupBtn.lastChild.nodeValue=' Creating account…';
+
+    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
+    try{
+      const resp=await Promise.race([
+        fetch('/signup',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            full_name:full_name,
+            email:email,
+            password:password,
+            confirm_password:confirmPassword,
+            agree:'on'
+          }),
+          credentials:'same-origin'
+        }),
+        timeout
+      ]);
+      const data=await resp.json();
+      console.log('Signup response:',data);
+      if(data.success){
+        signupBtn.lastChild.nodeValue=' Redirecting…';
+        window.location.href=data.redirect;
+      }else{
+        errorDiv.textContent=data.error||'Signup failed. Please try again.';
+        errorDiv.style.display='flex';
+        signupBtn.disabled=false;
+        spinner.style.display='none';
+        signupBtn.lastChild.nodeValue=' Create Account';
+      }
+    }catch(err){
+      const msg=err.message==='timeout'?'Connection is slow. Please try again.':'Connection failed. Please try again.';
+      errorDiv.textContent=msg;
+      errorDiv.style.display='flex';
+      signupBtn.disabled=false;
+      spinner.style.display='none';
+      signupBtn.lastChild.nodeValue=' Create Account';
+    }
+  });
+});
+</script>
+</body>
+</html>

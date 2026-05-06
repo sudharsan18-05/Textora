@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Settings — Textora</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0D0D0F;--brand:#FF5C3A;--text:#F2F2F4;--muted:#A0A0B0;--border:#2E2E3A;--panel1:#141418;--panel2:#1C1C22;--danger:#FF4444;--success:#3EFFA8;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+a{color:var(--brand);text-decoration:none}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none;transition:all .2s}
+input,select,textarea{font-family:'DM Sans',sans-serif;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--brand)}
+
+/* SIDEBAR (same as dashboard) */
+#sidebar{width:220px;background:var(--panel1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;padding:20px 0}
+.sb-logo{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;display:flex;align-items:center;gap:6px;padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.logo-dot{width:8px;height:8px;background:var(--brand);border-radius:50%}
+.user-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#ff9a3a);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;margin:0 auto 8px}
+.user-name{font-size:14px;font-weight:600;text-align:center;padding:0 20px}
+.user-plan{text-align:center;margin-bottom:20px}
+.plan-badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;background:rgba(255,92,58,.15);color:var(--brand);border:1px solid rgba(255,92,58,.3)}
+.sb-nav{flex:1;padding:0 10px}
+.sb-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);transition:all .2s;margin-bottom:2px}
+.sb-link:hover{background:var(--panel2);color:var(--text)}
+.sb-link.active{background:rgba(255,92,58,.1);color:var(--brand)}
+.sb-icon{font-size:16px;width:20px;text-align:center}
+.sb-bottom{padding:10px 10px 0;border-top:1px solid var(--border);margin-top:12px}
+.logout-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);width:100%;background:none;transition:all .2s}
+.logout-btn:hover{background:rgba(255,68,68,.1);color:#FF4444}
+
+/* CONTENT */
+#content{flex:1;display:flex;overflow:hidden}
+#settings-nav{width:180px;background:var(--panel1);border-right:1px solid var(--border);padding:16px 10px;flex-shrink:0}
+.snav-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:0 10px;margin-bottom:8px}
+.snav-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;margin-bottom:2px;border:1px solid transparent}
+.snav-item:hover{background:var(--panel2);color:var(--text)}
+.snav-item.active{background:rgba(255,92,58,.1);color:var(--brand);border-color:rgba(255,92,58,.2)}
+.snav-icon{font-size:14px;flex-shrink:0}
+#settings-body{flex:1;overflow-y:auto;padding:28px}
+.s-tab{display:none}
+.s-tab.active{display:block}
+.s-section{background:var(--panel1);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
+.s-section.danger-section{border-color:rgba(255,68,68,.3)}
+.s-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px}
+.s-sub{font-size:14px;color:var(--muted);margin-bottom:24px}
+.s-heading{font-size:14px;font-weight:700;margin-bottom:16px;color:var(--text);display:flex;align-items:center;gap:8px}
+.s-field{margin-bottom:16px}
+.s-field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.s-input{width:100%;padding:10px 12px;border-radius:8px;font-size:13px;background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+.s-input:focus{border-color:var(--brand)}
+.s-textarea{width:100%;padding:10px 12px;border-radius:8px;font-size:13px;resize:none;min-height:80px;background:var(--panel2);color:var(--text);border:1px solid var(--border);line-height:1.5}
+.s-select{width:100%;padding:10px 12px;border-radius:8px;font-size:13px;background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+.s-note{font-size:12px;color:var(--muted);margin-top:4px}
+.char-count{font-size:11px;color:var(--muted);text-align:right}
+.avatar-section{display:flex;flex-direction:column;align-items:center;margin-bottom:24px;gap:10px}
+.avatar-circle{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#ff9a3a);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700}
+.avatar-btns{display:flex;gap:8px}
+.btn-small{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600}
+.btn-outline-sm{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-outline-sm:hover{border-color:var(--brand);color:var(--brand)}
+.btn-brand-sm{background:var(--brand);color:#fff}
+.btn-brand-sm:hover{background:#ff7b60}
+.btn-save{padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;background:var(--brand);color:#fff}
+.btn-save:hover{background:#ff7b60}
+.btn-danger{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;background:var(--danger);color:#fff}
+.btn-danger:hover{background:#cc3333}
+.btn-danger-outline{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;background:transparent;color:var(--danger);border:1px solid rgba(255,68,68,.4)}
+.btn-danger-outline:hover{background:rgba(255,68,68,.1)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-info{flex:1}
+.toggle-info-title{font-size:13px;font-weight:500}
+.toggle-info-desc{font-size:12px;color:var(--muted);margin-top:2px}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer;flex-shrink:0;margin-left:16px}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:100px;transition:.3s}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked~.toggle-track{background:var(--brand)}
+.toggle input:checked~.toggle-thumb{left:21px}
+.radio-group{display:flex;gap:8px;flex-wrap:wrap}
+.radio-option{padding:8px 16px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);font-size:13px;cursor:pointer;transition:all .2s}
+.radio-option.selected{border-color:var(--brand);background:rgba(255,92,58,.1);color:var(--brand)}
+.theme-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.theme-card{border:2px solid var(--border);border-radius:12px;padding:12px;cursor:pointer;transition:all .2s;text-align:center}
+.theme-card:hover{border-color:var(--muted)}
+.theme-card.selected{border-color:var(--brand)}
+.theme-preview{height:60px;border-radius:8px;margin-bottom:8px}
+.theme-name{font-size:12px;font-weight:600}
+.accent-swatches{display:flex;gap:8px;flex-wrap:wrap}
+.accent-swatch{width:32px;height:32px;border-radius:50%;cursor:pointer;transition:transform .2s;position:relative;border:3px solid transparent}
+.accent-swatch:hover{transform:scale(1.1)}
+.accent-swatch.selected{border-color:#fff;box-shadow:0 0 0 2px var(--brand)}
+.api-key-box{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-family:monospace;font-size:13px;color:var(--text);display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.api-key-val{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.copy-btn{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;background:var(--panel1);border:1px solid var(--border);color:var(--text)}
+.copy-btn:hover{border-color:var(--brand);color:var(--brand)}
+.locked-card{border:1px solid var(--border);border-radius:12px;padding:32px;text-align:center;background:var(--panel2)}
+.locked-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+.locked-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.locked-desc{font-size:13px;color:var(--muted);margin-bottom:20px}
+.billing-table{width:100%;border-collapse:collapse;font-size:13px}
+.billing-table th{padding:10px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+.billing-table td{padding:10px;border-bottom:1px solid var(--border)}
+.billing-table tr:last-child td{border-bottom:none}
+.status-badge{padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700}
+.status-paid{background:rgba(62,255,168,.15);color:#3EFFA8}
+.session-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.session-item:last-child{border-bottom:none}
+.session-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.session-info{flex:1}
+.session-device{font-size:13px;font-weight:500}
+.session-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.plan-card{border:1px solid var(--border);border-radius:12px;padding:20px}
+.plan-name{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--brand);margin-bottom:4px}
+.plan-desc{font-size:13px;color:var(--muted);margin-bottom:16px}
+.plan-feature{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px}
+.check-icon{color:var(--success);font-size:14px}
+.usage-stat{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.usage-label{font-size:13px;color:var(--muted);width:160px}
+.usage-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.usage-fill{height:100%;background:var(--brand);border-radius:3px}
+.usage-val{font-size:12px;font-weight:600;width:60px;text-align:right}
+.danger-item{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(255,68,68,.2)}
+.danger-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.danger-title{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.danger-desc{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--panel1);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;z-index:999;animation:slideIn .3s ease;display:none}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--panel1);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:400px;width:90vw}
+.modal-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px}
+.modal-desc{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.modal-input{width:100%;padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:16px}
+.modal-btns{display:flex;gap:10px}
+.mobile-tab-selector{display:none;margin-bottom:16px}
+.mobile-tab-selector select{width:100%;padding:10px 12px;border-radius:10px;font-size:13px}
+@media(max-width:768px){
+  #sidebar{display:none}
+  #settings-nav{display:none}
+  .mobile-tab-selector{display:block}
+  .theme-cards{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-logo"><div class="logo-dot"></div>Textora</div>
+  {% set initials = user.full_name.split()[0][0]|upper if user.full_name else 'U' %}
+  <div class="user-avatar">{{ initials }}</div>
+  <div class="user-name">{{ user.full_name }}</div>
+  <div class="user-plan"><span class="plan-badge">{{ (user.plan_type or 'free').upper() }}</span></div>
+  <div class="sb-nav">
+    <a href="/dashboard" class="sb-link"><span class="sb-icon">📁</span>My Projects</a>
+    <a href="/editor" class="sb-link"><span class="sb-icon">➕</span>New Project</a>
+    <a href="/settings" class="sb-link active"><span class="sb-icon">⚙️</span>Settings</a>
+    <a href="#" class="sb-link"><span class="sb-icon">❓</span>Help</a>
+  </div>
+  <div class="sb-bottom">
+    <a href="/logout"><button class="logout-btn"><span class="sb-icon">🚪</span>Logout</button></a>
+  </div>
+</div>
+
+<!-- SETTINGS CONTENT -->
+<div id="content">
+  <!-- SETTINGS NAV -->
+  <div id="settings-nav">
+    <div class="snav-title">Settings</div>
+    <div class="snav-item active" onclick="switchTab('profile',this)"><span class="snav-icon">👤</span>Profile</div>
+    <div class="snav-item" onclick="switchTab('editor',this)"><span class="snav-icon">✏️</span>Editor</div>
+    <div class="snav-item" onclick="switchTab('appearance',this)"><span class="snav-icon">🎨</span>Appearance</div>
+    <div class="snav-item" onclick="switchTab('notifications',this)"><span class="snav-icon">🔔</span>Notifications</div>
+    <div class="snav-item" onclick="switchTab('security',this)"><span class="snav-icon">🔒</span>Privacy &amp; Security</div>
+    <div class="snav-item" onclick="switchTab('api',this)"><span class="snav-icon">🔑</span>API Access</div>
+    <div class="snav-item" onclick="switchTab('billing',this)"><span class="snav-icon">💳</span>Billing &amp; Plan</div>
+    <div class="snav-item" onclick="switchTab('danger',this)"><span class="snav-icon">⚠️</span>Danger Zone</div>
+  </div>
+
+  <div id="settings-body">
+    <!-- Mobile selector -->
+    <div class="mobile-tab-selector">
+      <select onchange="switchTabByName(this.value)">
+        <option value="profile">Profile</option>
+        <option value="editor">Editor</option>
+        <option value="appearance">Appearance</option>
+        <option value="notifications">Notifications</option>
+        <option value="security">Privacy &amp; Security</option>
+        <option value="api">API Access</option>
+        <option value="billing">Billing &amp; Plan</option>
+        <option value="danger">Danger Zone</option>
+      </select>
+    </div>
+
+    <!-- TAB 1: PROFILE -->
+    <div class="s-tab active" id="tab-profile">
+      <div class="s-title">Profile Settings</div>
+      <div class="s-sub">Manage your personal information and public profile.</div>
+      <div class="s-section">
+        <div class="avatar-section">
+          {% set initials = user.full_name.split()[0][0]|upper if user.full_name else 'U' %}
+          <div class="avatar-circle">{{ initials }}</div>
+          <div class="avatar-btns">
+            <button class="btn-small btn-brand-sm" onclick="alert('Photo upload coming soon')">Upload Photo</button>
+            <button class="btn-small btn-outline-sm">Remove Photo</button>
+          </div>
+          <div class="s-note">Max 2MB, JPG or PNG</div>
+        </div>
+        <div class="s-field">
+          <label>Full Name</label>
+          <input type="text" class="s-input" id="prof-name" value="{{ user.full_name }}" oninput="markDirty('save-profile-btn')"/>
+        </div>
+        <div class="s-field">
+          <label>Email Address</label>
+          <input type="email" class="s-input" value="{{ user.email }}" readonly style="opacity:.6"/>
+          <div class="s-note">Contact support to change your email.</div>
+        </div>
+        <div class="s-field">
+          <label>Bio</label>
+          <textarea class="s-textarea" id="prof-bio" maxlength="160" placeholder="Tell us about yourself…" oninput="updateCharCount(this,'bio-count');markDirty('save-profile-btn')">{{ user.bio or '' }}</textarea>
+          <div class="char-count"><span id="bio-count">{{ (user.bio or '')|length }}</span>/160</div>
+        </div>
+        <div class="s-field">
+          <label>Website URL</label>
+          <input type="url" class="s-input" id="prof-website" value="{{ user.website or '' }}" placeholder="https://yoursite.com" oninput="markDirty('save-profile-btn')"/>
+        </div>
+        <button class="btn-save" id="save-profile-btn" onclick="saveProfile()">Save Profile</button>
+      </div>
+    </div>
+
+    <!-- TAB 2: EDITOR -->
+    <div class="s-tab" id="tab-editor">
+      <div class="s-title">Editor Preferences</div>
+      <div class="s-sub">Customize how the editor works and behaves.</div>
+      <div class="s-section">
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Dark Mode</div><div class="toggle-info-desc">Use dark theme in editor</div></div>
+          <label class="toggle"><input type="checkbox" id="pref-darkmode" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Auto-detect Font</div><div class="toggle-info-desc">Automatically match the original font when you select a text region</div></div>
+          <label class="toggle"><input type="checkbox" id="pref-autofont"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Show Bounding Box Labels</div><div class="toggle-info-desc">Display font name and size above each detected text region</div></div>
+          <label class="toggle"><input type="checkbox" id="pref-bblabels" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Snap to Grid by Default</div><div class="toggle-info-desc">Text boxes snap to grid lines when dragging</div></div>
+          <label class="toggle"><input type="checkbox" id="pref-snap"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Show Processing Animation</div><div class="toggle-info-desc">Show animated steps when applying changes</div></div>
+          <label class="toggle"><input type="checkbox" id="pref-anim" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+      </div>
+      <div class="s-section">
+        <div class="s-field">
+          <label>Default Grid Size</label>
+          <input type="number" class="s-input" id="pref-gridsize" value="20" min="5" max="100" style="width:100px"/> <span style="font-size:13px;color:var(--muted)">px</span>
+        </div>
+        <div class="s-field">
+          <label>Auto Save Frequency</label>
+          <select class="s-select" id="pref-autosave">
+            <option value="1">Every 1 minute</option>
+            <option value="5" selected>Every 5 minutes</option>
+            <option value="10">Every 10 minutes</option>
+            <option value="0">Off</option>
+          </select>
+        </div>
+        <div class="s-field">
+          <label>Mouse Wheel Zoom Speed: <span id="zoom-speed-val">5</span></label>
+          <input type="range" min="1" max="10" value="5" id="pref-zoomspeed" oninput="document.getElementById('zoom-speed-val').textContent=this.value" style="width:200px;accent-color:var(--brand)"/>
+        </div>
+        <div class="s-field">
+          <label>Default Export Format</label>
+          <select class="s-select" id="pref-exportfmt" style="width:180px">
+            <option value="png">PNG</option>
+            <option value="jpg">JPG</option>
+            <option value="webp">WEBP</option>
+          </select>
+        </div>
+        <div class="s-field">
+          <label>Default Canvas Background</label>
+          <div class="radio-group" id="pref-bg">
+            <div class="radio-option selected" onclick="selectBg('dark',this)">Dark</div>
+            <div class="radio-option" onclick="selectBg('light',this)">Light</div>
+            <div class="radio-option" onclick="selectBg('transparent',this)">Transparent</div>
+            <div class="radio-option" onclick="selectBg('custom',this)">Custom</div>
+          </div>
+        </div>
+        <button class="btn-save" onclick="saveSettings('editor')">Save Editor Preferences</button>
+      </div>
+    </div>
+
+    <!-- TAB 3: APPEARANCE -->
+    <div class="s-tab" id="tab-appearance">
+      <div class="s-title">Appearance</div>
+      <div class="s-sub">Customize the look and feel of Textora.</div>
+      <div class="s-section">
+        <div class="s-heading">Theme</div>
+        <div class="theme-cards">
+          <div class="theme-card selected" onclick="selectTheme('dark',this)">
+            <div class="theme-preview" style="background:linear-gradient(135deg,#0D0D0F,#141418)"></div>
+            <div class="theme-name">Dark</div>
+          </div>
+          <div class="theme-card" onclick="selectTheme('light',this)">
+            <div class="theme-preview" style="background:linear-gradient(135deg,#f5f5f5,#ffffff)"></div>
+            <div class="theme-name">Light</div>
+          </div>
+          <div class="theme-card" onclick="selectTheme('system',this)">
+            <div class="theme-preview" style="background:linear-gradient(135deg,#0D0D0F 50%,#f5f5f5 50%)"></div>
+            <div class="theme-name">System</div>
+          </div>
+        </div>
+        <div class="s-heading">Accent Color</div>
+        <div class="accent-swatches">
+          <div class="accent-swatch selected" style="background:#FF5C3A" onclick="selectAccent('#FF5C3A',this)"></div>
+          <div class="accent-swatch" style="background:#3B82F6" onclick="selectAccent('#3B82F6',this)"></div>
+          <div class="accent-swatch" style="background:#10B981" onclick="selectAccent('#10B981',this)"></div>
+          <div class="accent-swatch" style="background:#8B5CF6" onclick="selectAccent('#8B5CF6',this)"></div>
+          <div class="accent-swatch" style="background:#EF4444" onclick="selectAccent('#EF4444',this)"></div>
+          <div class="accent-swatch" style="background:#EC4899" onclick="selectAccent('#EC4899',this)"></div>
+          <div class="accent-swatch" style="background:#14B8A6" onclick="selectAccent('#14B8A6',this)"></div>
+          <div class="accent-swatch" style="background:#F59E0B" onclick="selectAccent('#F59E0B',this)"></div>
+        </div>
+      </div>
+      <div class="s-section">
+        <div class="s-field">
+          <label>UI Font Size</label>
+          <select class="s-select" id="pref-fontsize" style="width:180px">
+            <option value="small">Small</option>
+            <option value="normal" selected>Normal</option>
+            <option value="large">Large</option>
+            <option value="xlarge">Extra Large</option>
+          </select>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Compact Mode</div><div class="toggle-info-desc">Reduce padding and spacing for more content on screen</div></div>
+          <label class="toggle"><input type="checkbox" id="pref-compact"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Enable Animations</div><div class="toggle-info-desc">Smooth transitions and micro-interactions</div></div>
+          <label class="toggle"><input type="checkbox" id="pref-animations" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div style="margin-top:16px">
+          <button class="btn-save" onclick="saveSettings('appearance')">Save Appearance</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: NOTIFICATIONS -->
+    <div class="s-tab" id="tab-notifications">
+      <div class="s-title">Notification Preferences</div>
+      <div class="s-sub">Control which notifications you receive.</div>
+      <div class="s-section">
+        <div class="s-heading">📧 Email Notifications</div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Export Complete</div><div class="toggle-info-desc">When your export is ready</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-export" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Weekly Usage Summary</div><div class="toggle-info-desc">Summary of your exports and usage every week</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-weekly"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Product Updates &amp; New Features</div><div class="toggle-info-desc">When we release new features</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-updates" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Tips &amp; Tutorials</div><div class="toggle-info-desc">Helpful tips for getting more out of Textora</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-tips"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Billing &amp; Payment Alerts</div><div class="toggle-info-desc">Invoices and payment confirmations</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-billing" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+      </div>
+      <div class="s-section">
+        <div class="s-heading">🔔 In-App Notifications</div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Processing Complete Popup</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-proc" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Auto-save Indicator</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-autosave" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Keyboard Shortcut Hints</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-shortcuts" checked/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Upgrade Prompts</div></div>
+          <label class="toggle"><input type="checkbox" id="notif-upgrade"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div style="margin-top:16px">
+          <button class="btn-save" onclick="saveSettings('notifications')">Save Notification Preferences</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: SECURITY -->
+    <div class="s-tab" id="tab-security">
+      <div class="s-title">Privacy &amp; Security</div>
+      <div class="s-sub">Manage your password, sessions, and data privacy.</div>
+      <div class="s-section">
+        <div class="s-heading">🔐 Change Password</div>
+        <div class="s-field">
+          <label>Current Password</label>
+          <input type="password" class="s-input" id="sec-current" placeholder="Enter current password"/>
+        </div>
+        <div class="s-field">
+          <label>New Password</label>
+          <input type="password" class="s-input" id="sec-new" placeholder="New password (min 6 chars)"/>
+        </div>
+        <div class="s-field">
+          <label>Confirm New Password</label>
+          <input type="password" class="s-input" id="sec-confirm" placeholder="Repeat new password"/>
+        </div>
+        <button class="btn-save" onclick="changePassword()">Change Password</button>
+        <div id="pw-msg" style="margin-top:10px;font-size:13px;display:none"></div>
+      </div>
+      <div class="s-section">
+        <div class="s-heading">🔑 Two-Factor Authentication <span style="font-size:11px;background:rgba(245,158,11,.15);color:#F59E0B;padding:2px 8px;border-radius:4px;margin-left:8px">Coming Soon</span></div>
+        <div style="opacity:.5;font-size:13px;color:var(--muted);padding:12px 0">Two-factor authentication will be available in a future update.</div>
+      </div>
+      <div class="s-section">
+        <div class="s-heading">💻 Active Sessions</div>
+        <div class="session-item">
+          <div class="session-dot" style="background:#3EFFA8"></div>
+          <div class="session-info">
+            <div class="session-device">Current Browser <span style="background:rgba(62,255,168,.15);color:#3EFFA8;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">This device</span></div>
+            <div class="session-meta">Active now</div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <button class="btn-danger-outline" onclick="alert('All other sessions signed out.')">Sign Out All Other Sessions</button>
+        </div>
+      </div>
+      <div class="s-section">
+        <div class="s-heading">🔏 Data &amp; Privacy</div>
+        <div class="toggle-row">
+          <div class="toggle-info"><div class="toggle-info-title">Allow Anonymous Usage Analytics</div><div class="toggle-info-desc">Help us improve Textora by sharing anonymous usage data</div></div>
+          <label class="toggle"><input type="checkbox" id="sec-analytics"/><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-outline-sm btn-small" onclick="alert('Your data download will be prepared and emailed to you.')">⬇ Download My Data</button>
+          <button class="btn-danger-outline" style="padding:7px 14px;font-size:12px" onclick="alert('All stored images deleted.')">Delete All Stored Images</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: API ACCESS -->
+    <div class="s-tab" id="tab-api">
+      <div class="s-title">API Access</div>
+      <div class="s-sub">Access Textora programmatically with your API key.</div>
+      {% if user.plan_type == 'business' %}
+      <div class="s-section">
+        <div class="s-heading">🔑 Your API Key</div>
+        <div class="api-key-box">
+          <span class="api-key-val" id="api-key-val">sk_live_••••••••••••••••••••••••••••</span>
+          <button class="copy-btn" onclick="copyApiKey()">Copy</button>
+        </div>
+        <div style="margin-bottom:16px">
+          <button class="btn-danger-outline" style="padding:8px 16px;font-size:13px" onclick="confirmRegen()">↻ Regenerate Key</button>
+        </div>
+        <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px;font-size:13px;color:#F59E0B">
+          ⚠ Never share your API key. It gives full access to your account.
+        </div>
+      </div>
+      <div class="s-section">
+        <div class="s-heading">📊 API Usage</div>
+        <div class="usage-stat">
+          <span class="usage-label">Requests this month</span>
+          <div class="usage-bar"><div class="usage-fill" style="width:23%"></div></div>
+          <span class="usage-val">230/1000</span>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Rate limit: 100 requests per minute</div>
+        <button class="btn-outline-sm btn-small">📖 View API Documentation ↗</button>
+      </div>
+      {% else %}
+      <div class="locked-card">
+        <div class="locked-icon">🔒</div>
+        <div class="locked-title">API Access — Business Plan</div>
+        <div class="locked-desc">API access is available on the Business plan. Upgrade to unlock programmatic access to Textora.</div>
+        <a href="/settings?tab=billing"><button class="btn-save">Upgrade to Business</button></a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- TAB 7: BILLING -->
+    <div class="s-tab" id="tab-billing">
+      <div class="s-title">Billing &amp; Plan</div>
+      <div class="s-sub">Manage your subscription and payment details.</div>
+      <div class="s-section">
+        <div class="s-heading">Current Plan</div>
+        <div class="plan-card" style="margin-bottom:16px">
+          <div class="plan-name">{{ (user.plan_type or 'FREE').upper() }}</div>
+          {% if user.plan_type == 'free' or not user.plan_type %}
+          <div class="plan-desc">Free forever with 5 exports per month.</div>
+          <div class="plan-feature"><span class="check-icon">✓</span>5 image exports per month</div>
+          <div class="plan-feature"><span class="check-icon">✓</span>Basic text detection</div>
+          <div class="plan-feature"><span class="check-icon">✓</span>Standard fonts</div>
+          <a href="#"><button class="btn-save" style="margin-top:12px">Upgrade to Pro — $19/mo</button></a>
+          {% else %}
+          <div class="plan-desc">Full access to all {{ (user.plan_type or 'pro').title() }} features.</div>
+          <div class="plan-feature"><span class="check-icon">✓</span>Unlimited exports</div>
+          <div class="plan-feature"><span class="check-icon">✓</span>Advanced text detection</div>
+          <div class="plan-feature"><span class="check-icon">✓</span>All Google Fonts</div>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button class="btn-danger-outline" style="padding:9px 18px;font-size:13px">Cancel Plan</button>
+          </div>
+          {% endif %}
+        </div>
+        <div class="s-heading">Usage This Month</div>
+        <div class="usage-stat">
+          <span class="usage-label">Image exports</span>
+          <div class="usage-bar"><div class="usage-fill" style="width:{{ [projects_count|default(0) * 20, 100]|min if user.plan_type == 'free' else 10 }}%"></div></div>
+          <span class="usage-val">{{ '0 of 5' if (user.plan_type == 'free' or not user.plan_type) else 'Unlimited' }}</span>
+        </div>
+        <div class="usage-stat">
+          <span class="usage-label">Storage used</span>
+          <div class="usage-bar"><div class="usage-fill" style="width:5%"></div></div>
+          <span class="usage-val">~5 MB</span>
+        </div>
+      </div>
+      <div class="s-section">
+        <div class="s-heading">💳 Billing History</div>
+        {% if user.plan_type == 'free' or not user.plan_type %}
+        <div style="font-size:13px;color:var(--muted);padding:12px 0">No billing history. You are on the free plan.</div>
+        {% else %}
+        <table class="billing-table">
+          <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Mar 1, 2026</td><td>Pro Plan — Monthly</td><td>$19.00</td><td><span class="status-badge status-paid">Paid</span></td></tr>
+            <tr><td>Feb 1, 2026</td><td>Pro Plan — Monthly</td><td>$19.00</td><td><span class="status-badge status-paid">Paid</span></td></tr>
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- TAB 8: DANGER ZONE -->
+    <div class="s-tab" id="tab-danger">
+      <div class="s-title" style="color:var(--danger)">⚠ Danger Zone</div>
+      <div class="s-sub">These actions are permanent and cannot be undone.</div>
+      <div class="s-section danger-section">
+        <div class="danger-item">
+          <div class="danger-title">Delete All Projects</div>
+          <div class="danger-desc">This will permanently delete all your projects and edited images. This cannot be undone.</div>
+          <button class="btn-danger" onclick="confirmDeleteAllProjects()">Delete All Projects</button>
+        </div>
+        <div class="danger-item">
+          <div class="danger-title">Reset Editor Preferences</div>
+          <div class="danger-desc">Reset all editor settings back to default values.</div>
+          <button class="btn-danger-outline" onclick="resetPrefs()">Reset to Defaults</button>
+        </div>
+        <div class="danger-item">
+          <div class="danger-title">Delete Account</div>
+          <div class="danger-desc">This will permanently delete your account, all projects, all data, and cancel any active subscription. This cannot be undone.</div>
+          <button class="btn-danger" onclick="confirmDeleteAccount()">Delete My Account</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end settings-body -->
+</div><!-- end content -->
+
+<!-- DELETE ALL PROJECTS MODAL -->
+<div class="modal-overlay" id="del-all-modal">
+  <div class="modal-box">
+    <div class="modal-title">Delete All Projects</div>
+    <div class="modal-desc">Type <b>DELETE</b> to confirm. This will permanently delete all your projects.</div>
+    <input type="text" class="s-input modal-input" id="del-all-input" placeholder="Type DELETE" oninput="checkDelAll()"/>
+    <div class="modal-btns">
+      <button class="btn-danger" id="del-all-confirm" disabled onclick="doDeleteAllProjects()">Delete All</button>
+      <button class="btn-outline-sm btn-small" onclick="closeModal('del-all-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE ACCOUNT MODAL -->
+<div class="modal-overlay" id="del-account-modal">
+  <div class="modal-box">
+    <div class="modal-title">Delete Your Account</div>
+    <div class="modal-desc">Type your email address <b>{{ user.email }}</b> to confirm. This action is permanent and cannot be reversed.</div>
+    <input type="email" class="s-input modal-input" id="del-account-input" placeholder="Enter your email" oninput="checkDelAccount()"/>
+    <div class="modal-btns">
+      <button class="btn-danger" id="del-account-confirm" disabled onclick="doDeleteAccount()">Delete Account</button>
+      <button class="btn-outline-sm btn-small" onclick="closeModal('del-account-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const USER_EMAIL = '{{ user.email }}';
+
+function switchTab(name, el) {
+  document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.snav-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+function switchTabByName(name) {
+  const items = document.querySelectorAll('.snav-item');
+  const tabs = ['profile','editor','appearance','notifications','security','api','billing','danger'];
+  const idx = tabs.indexOf(name);
+  switchTab(name, items[idx]);
+}
+
+function showToast(msg, ok=true) {
+  const t = document.getElementById('toast');
+  t.textContent = (ok ? '✅ ' : '❌ ') + msg;
+  t.style.display = 'flex';
+  t.style.borderColor = ok ? 'rgba(62,255,168,.3)' : 'rgba(255,68,68,.3)';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+function updateCharCount(el, countId) {
+  document.getElementById(countId).textContent = el.value.length;
+}
+
+function markDirty(btnId) {
+  const btn = document.getElementById(btnId);
+  if (btn && !btn.classList.contains('dirty')) {
+    btn.classList.add('dirty');
+    btn.style.background = '#ff7b60';
+  }
+}
+
+function saveProfile() {
+  const name = document.getElementById('prof-name').value.trim();
+  const bio = document.getElementById('prof-bio').value;
+  const website = document.getElementById('prof-website').value.trim();
+  if (!name) { showToast('Name is required.', false); return; }
+  fetch('/api/profile', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({full_name: name, bio, website})
+  }).then(r=>r.json()).then(d => {
+    if (d.ok) showToast('Profile saved successfully!');
+    else showToast(d.error || 'Save failed.', false);
+  }).catch(() => showToast('Save failed.', false));
+}
+
+function saveSettings(section) {
+  const prefs = {};
+  document.querySelectorAll('[id^="pref-"]').forEach(el => {
+    if (el.type === 'checkbox') prefs[el.id] = el.checked;
+    else prefs[el.id] = el.value;
+  });
+  document.querySelectorAll('[id^="notif-"]').forEach(el => {
+    prefs[el.id] = el.checked;
+  });
+  fetch('/api/settings', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(prefs)
+  }).then(r=>r.json()).then(d => {
+    if (d.ok) showToast('Settings saved!');
+    else showToast('Save failed.', false);
+  });
+}
+
+function changePassword() {
+  const current = document.getElementById('sec-current').value;
+  const newPw = document.getElementById('sec-new').value;
+  const confirm = document.getElementById('sec-confirm').value;
+  const msg = document.getElementById('pw-msg');
+  if (newPw !== confirm) { msg.textContent = '❌ Passwords do not match.'; msg.style.color='#FF4444'; msg.style.display='block'; return; }
+  if (newPw.length < 6) { msg.textContent = '❌ Password must be at least 6 characters.'; msg.style.color='#FF4444'; msg.style.display='block'; return; }
+  fetch('/api/password', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({current_password: current, new_password: newPw})
+  }).then(r=>r.json()).then(d => {
+    if (d.ok) { showToast('Password changed!'); msg.style.display='none'; document.getElementById('sec-current').value=''; document.getElementById('sec-new').value=''; document.getElementById('sec-confirm').value=''; }
+    else { msg.textContent = '❌ ' + (d.error || 'Error'); msg.style.color='#FF4444'; msg.style.display='block'; }
+  });
+}
+
+function selectTheme(t, el) {
+  document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectAccent(color, el) {
+  document.querySelectorAll('.accent-swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  document.documentElement.style.setProperty('--brand', color);
+}
+function selectBg(bg, el) {
+  document.querySelectorAll('#pref-bg .radio-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function copyApiKey() {
+  navigator.clipboard.writeText('sk_live_demo_key_12345').then(() => showToast('Copied!'));
+}
+function confirmRegen() {
+  if (confirm('Regenerate your API key? The old key will stop working immediately.')) showToast('API key regenerated.');
+}
+
+function confirmDeleteAllProjects() {
+  document.getElementById('del-all-modal').classList.add('open');
+  document.getElementById('del-all-input').value = '';
+  document.getElementById('del-all-confirm').disabled = true;
+}
+function checkDelAll() {
+  document.getElementById('del-all-confirm').disabled = document.getElementById('del-all-input').value !== 'DELETE';
+}
+function doDeleteAllProjects() {
+  fetch('/api/delete-all-projects', {method:'POST'}).then(r=>r.json()).then(d => {
+    if (d.ok) { closeModal('del-all-modal'); showToast('All projects deleted.'); }
+    else showToast('Error deleting projects.', false);
+  });
+}
+function confirmDeleteAccount() {
+  document.getElementById('del-account-modal').classList.add('open');
+  document.getElementById('del-account-input').value = '';
+  document.getElementById('del-account-confirm').disabled = true;
+}
+function checkDelAccount() {
+  document.getElementById('del-account-confirm').disabled = document.getElementById('del-account-input').value.trim().toLowerCase() !== USER_EMAIL.toLowerCase();
+}
+function doDeleteAccount() {
+  fetch('/api/delete-account', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email: document.getElementById('del-account-input').value})
+  }).then(r=>r.json()).then(d => {
+    if (d.ok) { window.location.href = '/'; }
+    else showToast(d.error || 'Error deleting account.', false);
+  });
+}
+function resetPrefs() {
+  if (confirm('Reset all editor preferences to defaults?')) showToast('Preferences reset to defaults.');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Check URL for initial tab
+const urlTab = new URLSearchParams(window.location.search).get('tab');
+if (urlTab) {
+  const items = document.querySelectorAll('.snav-item');
+  const tabs = ['profile','editor','appearance','notifications','security','api','billing','danger'];
+  const idx = tabs.indexOf(urlTab);
+  if (idx >= 0) switchTab(urlTab, items[idx]);
+}
+</script>
+</body>
+</html>
